@@ -1,5 +1,6 @@
 package ar.edu.itba.protos.grupo6.commons;
 
+
 import java.io.UnsupportedEncodingException;
 import java.util.Queue;
 
@@ -33,15 +34,15 @@ public class Worker implements Runnable {
         String data;
         switch (message.getType()) {
             case CONNECT:
-                System.out.println("WORKER: CONNECT");
+                System.out.println("WORKER: CONNECT to: " + to);
                 to.send(request.socket, null, request.type, request.ops);
                 break;
             case DISCONNECT:
-                System.out.println("WORKER: DISCONNECT");
+                System.out.println("WORKER: DISCONNECT to: " + to);
                 to.send(request.socket, null, request.type, request.ops);
                 break;
             case READ:
-                System.out.println("WORKER: READ");
+                System.out.println("WORKER: READ to: " + to);
                 data = message.getData();
                 System.out.println(data);
                 try {
@@ -52,7 +53,7 @@ public class Worker implements Runnable {
                 break;
             case WRITE:
                 data = message.getData();
-                System.out.println("WORKER: WRITE");
+                System.out.println("WORKER: WRITE to: " + to);
                 System.out.println(data);
                 try {
                     to.send(request.socket, data.getBytes("UTF-8"), request.type, request.ops);

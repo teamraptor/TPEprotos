@@ -62,7 +62,7 @@ public abstract class Nio implements Runnable {
         } catch (IOException e) {
             key.cancel();
             socketChannel.close();
-            changeRequest = new ChangeRequest(channelMap.discconect(socketChannel), ChangeRequest.Type.DISCONNECT, 0);
+            changeRequest = new ChangeRequest(channelMap.disconnect(socketChannel), ChangeRequest.Type.DISCONNECT, 0);
             message = Message.buildMessage(nio, changeRequest, Message.Type.DISCONNECT);
             outbox.add(message);
             return;
@@ -71,7 +71,7 @@ public abstract class Nio implements Runnable {
         if (numRead == -1) {
             key.channel().close();
             key.cancel();
-            changeRequest = new ChangeRequest(channelMap.discconect(socketChannel), ChangeRequest.Type.DISCONNECT, -1);
+            changeRequest = new ChangeRequest(channelMap.disconnect(socketChannel), ChangeRequest.Type.DISCONNECT, -1);
             message = Message.buildMessage(nio, changeRequest, Message.Type.DISCONNECT);
             outbox.add(message);
             return;
@@ -84,7 +84,9 @@ public abstract class Nio implements Runnable {
         changeRequest = new ChangeRequest(channelMap.getConnection(socketChannel), ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE);
         message = Message.buildMessage(nio, changeRequest, Message.Type.READ,  new String(bytes,"UTF-8"));
         outbox.add(message);
-        key.cancel();
+
+        buf.compact();
+
     }
 
     protected void write(SelectionKey key) throws IOException {

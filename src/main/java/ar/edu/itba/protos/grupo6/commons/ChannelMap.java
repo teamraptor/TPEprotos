@@ -24,7 +24,7 @@ public class ChannelMap {
         return map.get(channel);
     }
 
-    public SocketChannel discconect(SocketChannel channel) {
+    public SocketChannel disconnect(SocketChannel channel) {
         SocketChannel aux;
         aux = map.get(channel);
         map.remove(channel);
