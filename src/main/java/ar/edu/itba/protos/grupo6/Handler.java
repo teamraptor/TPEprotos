@@ -10,20 +10,23 @@ import java.nio.channels.SocketChannel;
 /**
  * Created by luis on 5/26/2016.
  */
-public class Handler {
+public class Handler implements Runnable {
     private Server server;
     private ByteBuffer buf;
     private Parser parser;
     private Worker worker;
+    private SelectionKey key;
 
-    public Handler(Server server, Parser parser, Worker worker) {
+    public Handler(Server server, SelectionKey key) {
         this.server = server;
-        this.buf = ByteBuffer.allocateDirect(4096);
-        this.parser = parser;
-        this.worker = worker;
+        this.buf = ByteBuffer.allocate(4096);
+        this.parser = new Parser();
+        this.worker = new Worker();
+        this.key = key;
     }
 
-    public void handleKey(SelectionKey key) {
+    @Override
+    public void run() {
         if (key.isAcceptable()) {
             this.handleAccept(key);
         }
@@ -41,17 +44,22 @@ public class Handler {
     private void handleWrite(SelectionKey key) {
         SocketChannel socketChannel = (SocketChannel) key.channel();
         Connection c = (Connection) key.attachment();
+        ByteBuffer write = null;
         try {
-            socketChannel.write(ByteBuffer.wrap(c.getData().getBytes()));
+            write = ByteBuffer.wrap(c.getData().getBytes());
+            socketChannel.write(write);
         } catch (IOException e) {
             closeConnection(key);
         }
-        buf.compact();
 
-        if (!buf.hasRemaining()) {
-            ChangeRequest read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, c.getPair());
+        if (!write.hasRemaining()) {
+            ChangeRequest read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socketChannel);
             server.changeRequest(read);
+            return;
         }
+
+        ChangeRequest request = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socketChannel, c.getData());
+        server.changeRequest(request);
 
     }
 
@@ -69,8 +77,10 @@ public class Handler {
             this.closeConnection(key);
         }
 
-        byte[] read = new byte[numRead];
-        buf.get(read, 0, numRead);
+        buf.flip();
+        byte[] read = new byte[buf.remaining()];
+        buf.get(read);
+        buf.flip();
 
         Connection c = (Connection) key.attachment();
         try {
@@ -87,7 +97,11 @@ public class Handler {
         if (msg != null) {
             ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), msg.data());
             server.changeRequest(write);
+            return;
         }
+
+        ChangeRequest request = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socketChannel, msg.data());
+        server.changeRequest(request);
     }
 
     private void closeConnection(SelectionKey key) {
@@ -126,4 +140,5 @@ public class Handler {
         }
 
     }
+
 }

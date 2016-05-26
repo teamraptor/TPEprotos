@@ -6,6 +6,8 @@ package ar.edu.itba.protos.grupo6;
 public class Parser {
 
     public POP3 parse(String s){
-        return null;
+        POP3 msg = new POP3();
+        msg.setData(s);
+        return msg;
     }
 }

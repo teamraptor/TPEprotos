@@ -9,9 +9,11 @@ public class Connection {
     private SocketChannel pair;
     private String data;
 
+
     public Connection(SocketChannel pair) {
         this.pair = pair;
     }
+
 
     public SocketChannel getPair() {
         return pair;
@@ -26,7 +28,7 @@ public class Connection {
     }
 
     public void setData(String s) {
-        this.data = data;
+        this.data = s;
     }
 
     public void appendData(String s) {

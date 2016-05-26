@@ -5,6 +5,6 @@ package ar.edu.itba.protos.grupo6;
  */
 public class Worker {
     public POP3 process(POP3 msg) {
-        return null;
+        return msg;
     }
 }
