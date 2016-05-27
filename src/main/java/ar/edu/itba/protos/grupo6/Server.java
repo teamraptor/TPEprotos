@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,15 +19,15 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class Server implements Runnable {
     private Selector selector;
-    private ExecutorService executorService;
+    private BlockingQueue<SelectionKey> outbox;
     private InetSocketAddress pop3;
 
     private Queue<ChangeRequest> requests;
 
-    public Server(InetSocketAddress me, InetSocketAddress pop3) {
+    public Server(InetSocketAddress me, InetSocketAddress pop3, BlockingQueue<SelectionKey> outbox) {
         this.requests = new LinkedBlockingQueue<>();
+        this.outbox = outbox;
         this.pop3 = pop3;
-        this.executorService = Executors.newCachedThreadPool();
         try {
             this.selector = initSelector(me);
         } catch (IOException e) {
@@ -65,7 +66,7 @@ public class Server implements Runnable {
                     continue;
                 }
 
-                executorService.execute(new Handler(this, key));
+                outbox.offer(key);
                 key.interestOps(0);
             }
 

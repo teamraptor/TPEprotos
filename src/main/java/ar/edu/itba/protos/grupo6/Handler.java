@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Created by luis on 5/26/2016.
@@ -15,28 +16,48 @@ public class Handler implements Runnable {
     private ByteBuffer buf;
     private Parser parser;
     private Worker worker;
-    private SelectionKey key;
+    private BlockingQueue<SelectionKey> inbox;
+    private String name;
 
-    public Handler(Server server, SelectionKey key) {
+    public Handler(Server server, BlockingQueue<SelectionKey> inbox, String name) {
         this.server = server;
-        this.buf = ByteBuffer.allocate(4096);
+        this.buf = ByteBuffer.allocateDirect(4096);
         this.parser = new Parser();
         this.worker = new Worker();
-        this.key = key;
+        this.inbox = inbox;
+        this.name = name;
     }
 
     @Override
     public void run() {
+
+        while (true) {
+            try {
+                SelectionKey key = inbox.take();
+                handleKey(key);
+
+            }catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void handleKey(SelectionKey key) {
         if (key.isAcceptable()) {
+            System.out.println(this.name + ": ACCEPT");
             this.handleAccept(key);
         }
         if (key.isConnectable()) {
+            System.out.println(this.name + ": CONNECT");
             this.handleConnect(key);
         }
         if (key.isReadable()) {
+            System.out.println(this.name + ": READ");
             this.handleRead(key);
         }
         if (key.isWritable()) {
+            System.out.println(this.name + ": WRITE");
             this.handleWrite(key);
         }
     }
@@ -46,7 +67,6 @@ public class Handler implements Runnable {
         SocketChannel socket = (SocketChannel) key.channel();
         Connection c = (Connection) key.attachment();
         byte[] data = c.getData().getBytes();
-        System.out.println(c.getData());
         int i = c.getIndex();
         int length = Math.min(buf.limit() , data.length - i);
 
@@ -86,10 +106,11 @@ public class Handler implements Runnable {
             this.closeConnection(key);
         }
 
+
         buf.flip();
         byte[] read = new byte[buf.remaining()];
         buf.get(read);
-        buf.flip();
+        buf.compact();
 
         Connection c = (Connection) key.attachment();
         try {
