@@ -86,13 +86,16 @@ public class Server implements Runnable {
         Connection c;
         switch (request.getType()) {
             case CHANGEOP:
-                SelectionKey key = request.getSocket().keyFor(selector);
-                key.interestOps(request.getOps());
-                c = (Connection) key.attachment();
-                c.setData(request.getData());
+                SelectionKey key = request.getChannel().keyFor(selector);
+                //queda un request colgado? es el ctrl c ?
+                if (key.isValid()) {
+                    key.interestOps(request.getOps());
+                    c = (Connection) key.attachment();
+                    c.setData(request.getData());
+                }
                 break;
             case CONNECT:
-                SocketChannel client = request.getSocket();
+                SocketChannel client = (SocketChannel) request.getChannel();
                 SocketChannel pop3Server = null;
                 try {
                     pop3Server = SocketChannel.open();
@@ -114,10 +117,23 @@ public class Server implements Runnable {
 
                 break;
             case DISCONNECT:
-                SocketChannel socket = request.getSocket();
-                socket.keyFor(selector).cancel();
-                //close channel?
+                SocketChannel socket = (SocketChannel) request.getChannel();
+                SelectionKey key1 = socket.keyFor(selector);
+                c = (Connection)key1.attachment();
+                SelectionKey key2 = c.getPair().keyFor(selector);
+
+                try {
+                    key1.channel().close();
+                    key2.channel().close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                key1.cancel();
+                key2.cancel();
+
                 break;
+            case ACCEPT:
+                request.getChannel().keyFor(selector).interestOps(SelectionKey.OP_ACCEPT);
             default:
 
         }

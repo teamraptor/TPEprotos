@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
 
         InetSocketAddress serverAddr = new InetSocketAddress("localhost", 8080);
-        InetSocketAddress pop3 = new InetSocketAddress("localhost", 8081);
+        InetSocketAddress pop3 = new InetSocketAddress("pop.gmx.com", 110);
         Server server = new Server(serverAddr, pop3);
         new Thread(server).run();
     }

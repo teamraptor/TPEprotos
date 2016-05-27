@@ -42,24 +42,33 @@ public class Handler implements Runnable {
     }
 
     private void handleWrite(SelectionKey key) {
-        SocketChannel socketChannel = (SocketChannel) key.channel();
+
+        SocketChannel socket = (SocketChannel) key.channel();
         Connection c = (Connection) key.attachment();
-        ByteBuffer write = null;
+        byte[] data = c.getData().getBytes();
+        System.out.println(c.getData());
+        int i = c.getIndex();
+        int length = Math.min(buf.limit() , data.length - i);
+
+        buf.put(c.getData().getBytes(),i,length);
+
         try {
-            write = ByteBuffer.wrap(c.getData().getBytes());
-            socketChannel.write(write);
+            buf.flip();
+            int numWrite = socket.write(buf);
+            buf.compact();
+            c.setIndex(i+numWrite);
+            if(c.getIndex() < data.length) {
+                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP,SelectionKey.OP_WRITE,socket,c.getData());
+                server.changeRequest(write);
+            }else {
+                c.setIndex(0);
+                ChangeRequest read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socket);
+                server.changeRequest(read);
+            }
+
         } catch (IOException e) {
             closeConnection(key);
         }
-
-        if (!write.hasRemaining()) {
-            ChangeRequest read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socketChannel);
-            server.changeRequest(read);
-            return;
-        }
-
-        ChangeRequest request = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socketChannel, c.getData());
-        server.changeRequest(request);
 
     }
 
@@ -90,11 +99,8 @@ public class Handler implements Runnable {
         }
 
         POP3 msg = parser.parse(c.getData());
-        if (msg != null) {
+        if (msg.isDone()) {
             msg = worker.process(msg);
-        }
-
-        if (msg != null) {
             ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), msg.data());
             server.changeRequest(write);
             return;
@@ -106,15 +112,9 @@ public class Handler implements Runnable {
 
     private void closeConnection(SelectionKey key) {
         SocketChannel socketChannel = (SocketChannel) key.channel();
-        SocketChannel pair = ((Connection) key.attachment()).getPair();
-        ChangeRequest disconnect = new ChangeRequest(ChangeRequest.Type.DISCONNECT, 0, pair);
+        ChangeRequest disconnect = new ChangeRequest(ChangeRequest.Type.DISCONNECT, 0, socketChannel);
         server.changeRequest(disconnect);
-        key.cancel();
-        try {
-            socketChannel.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 
     private void handleConnect(SelectionKey key) {
@@ -130,14 +130,16 @@ public class Handler implements Runnable {
 
     private void handleAccept(SelectionKey key) {
         ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
+        SocketChannel socketChannel;
         try {
-            SocketChannel socketChannel = serverSocketChannel.accept();
+            socketChannel = serverSocketChannel.accept();
             socketChannel.configureBlocking(false);
             ChangeRequest request = new ChangeRequest(ChangeRequest.Type.CONNECT, 0, socketChannel);
             server.changeRequest(request);
         } catch (IOException e) {
-            key.cancel();
         }
+        ChangeRequest accept = new ChangeRequest(ChangeRequest.Type.ACCEPT,SelectionKey.OP_ACCEPT, key.channel());
+        server.changeRequest(accept);
 
     }
 

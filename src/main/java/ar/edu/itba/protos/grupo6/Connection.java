@@ -1,5 +1,7 @@
 package ar.edu.itba.protos.grupo6;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 /**
@@ -8,10 +10,13 @@ import java.nio.channels.SocketChannel;
 public class Connection {
     private SocketChannel pair;
     private String data;
+    private int index;
+
 
 
     public Connection(SocketChannel pair) {
         this.pair = pair;
+        this.index = 0;
     }
 
 
@@ -38,5 +43,13 @@ public class Connection {
         }
 
         this.data = data + s;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

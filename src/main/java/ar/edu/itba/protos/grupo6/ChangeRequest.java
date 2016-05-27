@@ -1,26 +1,27 @@
 package ar.edu.itba.protos.grupo6;
 
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 
 /**
  * Created by Luis on 5/15/2016.
  */
 public class ChangeRequest {
-    private SocketChannel socket;
+    private SelectableChannel channel;
     private String data;
     private Type type;
     private int ops;
 
-    public ChangeRequest(Type type, SocketChannel socket) {
-        initRequest(type, 0, socket, "");
+    public ChangeRequest(Type type, SelectableChannel channel) {
+        initRequest(type, 0, channel, "");
     }
 
-    public ChangeRequest(Type type, int ops, SocketChannel socket) {
-        initRequest(type, ops, socket, "");
+    public ChangeRequest(Type type, int ops, SelectableChannel channel) {
+        initRequest(type, ops, channel, "");
     }
 
-    public ChangeRequest(Type type, int ops, SocketChannel socket, String data) {
-        initRequest(type, ops, socket, data);
+    public ChangeRequest(Type type, int ops, SelectableChannel channel, String data) {
+        initRequest(type, ops, channel, data);
     }
 
     public String getData() {
@@ -31,22 +32,22 @@ public class ChangeRequest {
         return type;
     }
 
-    public SocketChannel getSocket() {
-        return socket;
+    public SelectableChannel getChannel() {
+        return channel;
     }
 
     public int getOps() {
         return ops;
     }
 
-    private void initRequest(Type type, int ops, SocketChannel socket, String data) {
-        this.socket = socket;
+    private void initRequest(Type type, int ops, SelectableChannel channel, String data) {
+        this.channel = channel;
         this.type = type;
         this.ops = ops;
         this.data = data;
     }
 
     public enum Type {
-        CHANGEOP, DISCONNECT, CONNECT
+        ACCEPT, CHANGEOP, DISCONNECT, CONNECT
     }
 }
