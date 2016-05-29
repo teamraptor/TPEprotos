@@ -10,8 +10,6 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -61,13 +59,14 @@ public class Server implements Runnable {
                 final SelectionKey key = selectedKeys.next();
                 selectedKeys.remove();
 
-                if (!key.isValid()) {
+                if (key.isValid()) {
+                    outbox.offer(key);
+                    key.interestOps(0);
+                } else {
                     key.cancel();
-                    continue;
                 }
 
-                outbox.offer(key);
-                key.interestOps(0);
+
             }
 
             requests.stream().forEach((request) -> this.handleRequest(request));
@@ -88,12 +87,9 @@ public class Server implements Runnable {
         switch (request.getType()) {
             case CHANGEOP:
                 SelectionKey key = request.getChannel().keyFor(selector);
-                //queda un request colgado? es el ctrl c ?
-                if (key.isValid()) {
-                    key.interestOps(request.getOps());
-                    c = (Connection) key.attachment();
-                    c.setData(request.getData());
-                }
+                key.interestOps(request.getOps());
+                c = (Connection) key.attachment();
+                c.setData(request.getData());
                 break;
             case CONNECT:
                 SocketChannel client = (SocketChannel) request.getChannel();

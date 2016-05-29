@@ -7,11 +7,13 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
+import java.util.logging.Logger;
 
 /**
  * Created by luis on 5/26/2016.
  */
 public class Handler implements Runnable {
+    Logger logger;
     private Server server;
     private ByteBuffer buf;
     private Parser parser;
@@ -26,6 +28,7 @@ public class Handler implements Runnable {
         this.worker = new Worker();
         this.inbox = inbox;
         this.name = name;
+        this.logger = Logger.getLogger("");
     }
 
     @Override
@@ -44,21 +47,19 @@ public class Handler implements Runnable {
     }
 
     private void handleKey(SelectionKey key) {
-        if (key.isAcceptable()) {
-            System.out.println(this.name + ": ACCEPT");
-            this.handleAccept(key);
-        }
-        if (key.isConnectable()) {
-            System.out.println(this.name + ": CONNECT");
-            this.handleConnect(key);
-        }
-        if (key.isReadable()) {
-            System.out.println(this.name + ": READ");
-            this.handleRead(key);
-        }
-        if (key.isWritable()) {
-            System.out.println(this.name + ": WRITE");
-            this.handleWrite(key);
+        if (key.isValid()) {
+            if (key.isAcceptable()) {
+                this.handleAccept(key);
+            }
+            if (key.isConnectable()) {
+                this.handleConnect(key);
+            }
+            if (key.isReadable()) {
+                this.handleRead(key);
+            }
+            if (key.isWritable()) {
+                this.handleWrite(key);
+            }
         }
     }
 
@@ -104,6 +105,7 @@ public class Handler implements Runnable {
 
         if (numRead == -1) {
             this.closeConnection(key);
+            return;
         }
 
 
@@ -135,7 +137,6 @@ public class Handler implements Runnable {
         SocketChannel socketChannel = (SocketChannel) key.channel();
         ChangeRequest disconnect = new ChangeRequest(ChangeRequest.Type.DISCONNECT, 0, socketChannel);
         server.changeRequest(disconnect);
-
     }
 
     private void handleConnect(SelectionKey key) {
