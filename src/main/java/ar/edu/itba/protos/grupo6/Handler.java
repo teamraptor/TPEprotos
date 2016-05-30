@@ -7,6 +7,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -124,6 +125,7 @@ public class Handler implements Runnable {
         POP3 msg = parser.parse(c.getData());
         if (msg.isDone()) {
             msg = worker.process(msg);
+            logger.log(Level.INFO, msg.data());
             ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), msg.data());
             server.changeRequest(write);
             return;
