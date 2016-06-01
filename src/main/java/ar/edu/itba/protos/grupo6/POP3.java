@@ -33,6 +33,7 @@ public class POP3 extends Message {
     public boolean isDone() {
         return this.done;
     }
+
     public void setDone() {
         this.done = true;
     }

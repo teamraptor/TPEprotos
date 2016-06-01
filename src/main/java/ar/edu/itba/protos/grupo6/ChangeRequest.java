@@ -1,7 +1,6 @@
 package ar.edu.itba.protos.grupo6;
 
 import java.nio.channels.SelectableChannel;
-import java.nio.channels.SocketChannel;
 
 /**
  * Created by Luis on 5/15/2016.

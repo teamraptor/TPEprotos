@@ -14,8 +14,8 @@ public class HandlerPool {
     public HandlerPool(BlockingQueue<SelectionKey> inbox, Server server) {
         this.inbox = inbox;
         ExecutorService executor = Executors.newCachedThreadPool();
-        for (int i = 0; i < 10 ; i++) {
-            executor.execute(new Handler(server,inbox,"Handler_" + i));
+        for (int i = 0; i < 10; i++) {
+            executor.execute(new Handler(server, inbox, "Handler_" + i));
         }
     }
 }

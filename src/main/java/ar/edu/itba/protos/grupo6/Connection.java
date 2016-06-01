@@ -12,7 +12,6 @@ public class Connection {
     private int index;
 
 
-
     public Connection(SocketChannel pair) {
         this.data = new StringBuilder();
         this.pair = pair;

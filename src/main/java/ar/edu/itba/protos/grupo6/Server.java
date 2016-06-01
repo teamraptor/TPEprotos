@@ -23,6 +23,7 @@ public class Server implements Runnable {
     private Queue<ChangeRequest> requests;
 
     public Server(InetSocketAddress me, InetSocketAddress pop3, BlockingQueue<SelectionKey> outbox) {
+
         this.requests = new LinkedBlockingQueue<>();
         this.outbox = outbox;
         this.pop3 = pop3;
@@ -45,6 +46,7 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
+        boolean notFull;
         while (true) {
 
             try {
@@ -60,8 +62,10 @@ public class Server implements Runnable {
                 selectedKeys.remove();
 
                 if (key.isValid()) {
-                    outbox.offer(key);
-                    key.interestOps(0);
+                    notFull = outbox.offer(key);
+                    if (notFull) {
+                        key.interestOps(0);
+                    }
                 } else {
                     key.cancel();
                 }
@@ -75,11 +79,8 @@ public class Server implements Runnable {
     }
 
     public void changeRequest(ChangeRequest request) {
-        synchronized (requests) {
-            requests.offer(request);
-        }
+        requests.offer(request);
         selector.wakeup();
-
     }
 
     private void handleRequest(ChangeRequest request) {
@@ -116,7 +117,7 @@ public class Server implements Runnable {
             case DISCONNECT:
                 SocketChannel socket = (SocketChannel) request.getChannel();
                 SelectionKey key1 = socket.keyFor(selector);
-                c = (Connection)key1.attachment();
+                c = (Connection) key1.attachment();
                 SelectionKey key2 = c.getPair().keyFor(selector);
 
                 try {

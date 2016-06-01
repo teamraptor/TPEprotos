@@ -1,7 +1,7 @@
 package ar.edu.itba.protos.grupo6;
 
 /**
- debería ser una interfaz y hacer una clase POP3Parser que la implemente
+ * debería ser una interfaz y hacer una clase POP3Parser que la implemente
  */
 public class Parser {
 
@@ -15,12 +15,9 @@ public class Parser {
             if (s.contains("\r\n.\r\n")) {
                 msg.setDone();
             }
-        }else if (!s.equals("+OK\r\n")){
+        } else if (!s.equals("+OK\r\n")) {
             msg.setDone();
         }
-
-
-
 
 
         return msg;

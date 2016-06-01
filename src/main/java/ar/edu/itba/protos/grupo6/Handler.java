@@ -23,6 +23,7 @@ public class Handler implements Runnable {
     private String name;
 
     public Handler(Server server, BlockingQueue<SelectionKey> inbox, String name) {
+
         this.server = server;
         this.buf = ByteBuffer.allocateDirect(4096);
         this.parser = new Parser();
@@ -40,7 +41,7 @@ public class Handler implements Runnable {
                 SelectionKey key = inbox.take();
                 handleKey(key);
 
-            }catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -70,19 +71,19 @@ public class Handler implements Runnable {
         Connection c = (Connection) key.attachment();
         byte[] data = c.getData().getBytes();
         int i = c.getIndex();
-        int length = Math.min(buf.limit() , data.length - i);
+        int length = Math.min(buf.limit(), data.length - i);
 
-        buf.put(c.getData().getBytes(),i,length);
+        buf.put(c.getData().getBytes(), i, length);
 
         try {
             buf.flip();
             int numWrite = socket.write(buf);
             buf.compact();
-            c.setIndex(i+numWrite);
-            if(c.getIndex() < data.length) {
-                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP,SelectionKey.OP_WRITE,socket,c.getData());
+            c.setIndex(i + numWrite);
+            if (c.getIndex() < data.length) {
+                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socket, c.getData());
                 server.changeRequest(write);
-            }else {
+            } else {
                 c.setIndex(0);
                 ChangeRequest read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socket);
                 server.changeRequest(read);
@@ -120,6 +121,8 @@ public class Handler implements Runnable {
             c.appendData(new String(read, "UTF-8"));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
+            closeConnection(key);
+            return;
         }
 
         POP3 msg = parser.parse(c.getData());
@@ -147,6 +150,7 @@ public class Handler implements Runnable {
             socketChannel.finishConnect();
         } catch (IOException e) {
             closeConnection(key);
+            return;
         }
         ChangeRequest register = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socketChannel);
         server.changeRequest(register);
@@ -161,8 +165,9 @@ public class Handler implements Runnable {
             ChangeRequest request = new ChangeRequest(ChangeRequest.Type.CONNECT, 0, socketChannel);
             server.changeRequest(request);
         } catch (IOException e) {
+            e.printStackTrace();
         }
-        ChangeRequest accept = new ChangeRequest(ChangeRequest.Type.ACCEPT,SelectionKey.OP_ACCEPT, key.channel());
+        ChangeRequest accept = new ChangeRequest(ChangeRequest.Type.ACCEPT, SelectionKey.OP_ACCEPT, key.channel());
         server.changeRequest(accept);
 
     }
