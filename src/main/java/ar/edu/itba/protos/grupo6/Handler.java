@@ -49,19 +49,21 @@ public class Handler implements Runnable {
     }
 
     private void handleKey(SelectionKey key) {
-        if (key.isValid()) {
-            if (key.isAcceptable()) {
-                this.handleAccept(key);
-            }
-            if (key.isConnectable()) {
-                this.handleConnect(key);
-            }
-            if (key.isReadable()) {
-                this.handleRead(key);
-            }
-            if (key.isWritable()) {
-                this.handleWrite(key);
-            }
+        if (key.isValid() && key.isAcceptable()) {
+            logger.info("ACCEPT");
+            this.handleAccept(key);
+        }
+        if (key.isValid() && key.isConnectable()) {
+            logger.info("CONNECT");
+            this.handleConnect(key);
+        }
+        if (key.isValid() && key.isReadable()) {
+            logger.info("READ");
+            this.handleRead(key);
+        }
+        if (key.isValid() && key.isWritable()) {
+            logger.info("WRITE");
+            this.handleWrite(key);
         }
     }
 
@@ -103,6 +105,7 @@ public class Handler implements Runnable {
             numRead = socketChannel.read(buf);
         } catch (IOException e) {
             this.closeConnection(key);
+            return;
         }
 
         if (numRead == -1) {
@@ -128,7 +131,6 @@ public class Handler implements Runnable {
         POP3 msg = parser.parse(c.getData());
         if (msg.isDone()) {
             msg = worker.process(msg);
-            logger.info(msg.data());
             ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), msg.data());
             server.changeRequest(write);
             return;
