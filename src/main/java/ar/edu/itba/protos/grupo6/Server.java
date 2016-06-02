@@ -1,5 +1,7 @@
 package ar.edu.itba.protos.grupo6;
 
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -19,11 +21,14 @@ public class Server implements Runnable {
     private Selector selector;
     private BlockingQueue<SelectionKey> outbox;
     private InetSocketAddress pop3;
+    private Logger logger;
+    private String name;
 
     private Queue<ChangeRequest> requests;
 
     public Server(InetSocketAddress me, InetSocketAddress pop3, BlockingQueue<SelectionKey> outbox) {
-
+        this.logger = Logger.getLogger(Server.class.getName());
+        this.name = "SERVER";
         this.requests = new LinkedBlockingQueue<>();
         this.outbox = outbox;
         this.pop3 = pop3;
@@ -31,6 +36,7 @@ public class Server implements Runnable {
             this.selector = initSelector(me);
         } catch (IOException e) {
             e.printStackTrace();
+            logger.error(e.getMessage());
         }
     }
 
@@ -48,9 +54,10 @@ public class Server implements Runnable {
     public void run() {
         boolean notFull;
         while (true) {
-
+            logger.info(selector.keys().size());
             try {
                 selector.select();
+                logger.info(this.name + " selected");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -67,6 +74,7 @@ public class Server implements Runnable {
                         key.interestOps(0);
                     }
                 } else {
+                    logger.warn(this.name + " invalid key");
                     key.cancel();
                 }
 
@@ -87,12 +95,14 @@ public class Server implements Runnable {
         Connection c;
         switch (request.getType()) {
             case CHANGEOP:
+                logger.info(this.name + " CHANGEOP");
                 SelectionKey key = request.getChannel().keyFor(selector);
                 key.interestOps(request.getOps());
                 c = (Connection) key.attachment();
                 c.setData(request.getData());
                 break;
             case CONNECT:
+                logger.info(this.name + " CONENCT");
                 SocketChannel client = (SocketChannel) request.getChannel();
                 SocketChannel pop3Server = null;
                 try {
@@ -102,19 +112,22 @@ public class Server implements Runnable {
                     c = new Connection(client);
                     pop3Server.register(selector, SelectionKey.OP_CONNECT, c);
                 } catch (IOException e) {
+                    logger.error(e.getMessage());
                     client.keyFor(selector).cancel();
-                    //close channel?
+                    return;
                 }
                 c = new Connection(pop3Server);
                 try {
                     client.register(selector, 0, c);
                 } catch (IOException e) {
+                    logger.error(e.getMessage());
                     client.keyFor(selector).cancel();
                     pop3Server.keyFor(selector).cancel();
                 }
 
                 break;
             case DISCONNECT:
+                logger.info(this.name + " DISCONNECT");
                 SocketChannel socket = (SocketChannel) request.getChannel();
                 SelectionKey key1 = socket.keyFor(selector);
                 c = (Connection) key1.attachment();
@@ -124,13 +137,16 @@ public class Server implements Runnable {
                     key1.channel().close();
                     key2.channel().close();
                 } catch (IOException e) {
+                    logger.error(e.getMessage());
                     e.printStackTrace();
+                    return;
                 }
                 key1.cancel();
                 key2.cancel();
 
                 break;
             case ACCEPT:
+                logger.info(this.name + " ACCEPT");
                 request.getChannel().keyFor(selector).interestOps(SelectionKey.OP_ACCEPT);
             default:
 

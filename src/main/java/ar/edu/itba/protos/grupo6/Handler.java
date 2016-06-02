@@ -38,7 +38,9 @@ public class Handler implements Runnable {
 
         while (true) {
             try {
+                logger.warn(this.name + " TAKE");
                 SelectionKey key = inbox.take();
+                logger.warn(this.name + " HANDLING");
                 handleKey(key);
 
             } catch (InterruptedException e) {
@@ -50,20 +52,23 @@ public class Handler implements Runnable {
 
     private void handleKey(SelectionKey key) {
         if (key.isValid() && key.isAcceptable()) {
-            logger.info("ACCEPT");
+            logger.info(this.name + ": ACCEPT");
             this.handleAccept(key);
         }
         if (key.isValid() && key.isConnectable()) {
-            logger.info("CONNECT");
+            logger.info(this.name + ":CONNECT");
             this.handleConnect(key);
         }
         if (key.isValid() && key.isReadable()) {
-            logger.info("READ");
+            logger.info(this.name + ":READ");
             this.handleRead(key);
         }
         if (key.isValid() && key.isWritable()) {
-            logger.info("WRITE");
+            logger.info(this.name + ":WRITE");
             this.handleWrite(key);
+        }
+        if (!key.isValid()) {
+            closeConnection(key);
         }
     }
 
@@ -83,16 +88,19 @@ public class Handler implements Runnable {
             buf.compact();
             c.setIndex(i + numWrite);
             if (c.getIndex() < data.length) {
+                logger.info(this.name + " NOT DONE WRITING");
                 ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socket, c.getData());
                 server.changeRequest(write);
             } else {
                 c.setIndex(0);
+                logger.info(this.name + " DONE WRITING");
                 ChangeRequest read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socket);
                 server.changeRequest(read);
             }
 
         } catch (IOException e) {
             closeConnection(key);
+            logger.error(e.getMessage());
         }
 
     }
@@ -105,11 +113,13 @@ public class Handler implements Runnable {
             numRead = socketChannel.read(buf);
         } catch (IOException e) {
             this.closeConnection(key);
+            logger.error(e.getMessage());
             return;
         }
 
         if (numRead == -1) {
             this.closeConnection(key);
+            logger.debug("Other side closed connection");
             return;
         }
 
@@ -125,22 +135,25 @@ public class Handler implements Runnable {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             closeConnection(key);
+            logger.error(e.getMessage());
             return;
         }
 
         POP3 msg = parser.parse(c.getData());
         if (msg.isDone()) {
+            logger.info(this.name + " DONE READING");
             msg = worker.process(msg);
             ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), msg.data());
             server.changeRequest(write);
             return;
         }
-
+        logger.info(this.name + " NOT DONE READING");
         ChangeRequest request = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socketChannel, msg.data());
         server.changeRequest(request);
     }
 
     private void closeConnection(SelectionKey key) {
+        logger.info(this.name + " CLOSE CONNECTION");
         SocketChannel socketChannel = (SocketChannel) key.channel();
         ChangeRequest disconnect = new ChangeRequest(ChangeRequest.Type.DISCONNECT, 0, socketChannel);
         server.changeRequest(disconnect);
@@ -152,6 +165,7 @@ public class Handler implements Runnable {
             socketChannel.finishConnect();
         } catch (IOException e) {
             closeConnection(key);
+            logger.error(e.getMessage());
             return;
         }
         ChangeRequest register = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socketChannel);
@@ -168,6 +182,8 @@ public class Handler implements Runnable {
             server.changeRequest(request);
         } catch (IOException e) {
             e.printStackTrace();
+            logger.error(e.getMessage());
+            return;
         }
         ChangeRequest accept = new ChangeRequest(ChangeRequest.Type.ACCEPT, SelectionKey.OP_ACCEPT, key.channel());
         server.changeRequest(accept);
