@@ -153,7 +153,7 @@ public class Handler implements Runnable {
     }
 
     private void closeConnection(SelectionKey key) {
-        logger.info(this.name + " CLOSE CONNECTION");
+        logger.warn(this.name + " CLOSE CONNECTION");
         SocketChannel socketChannel = (SocketChannel) key.channel();
         ChangeRequest disconnect = new ChangeRequest(ChangeRequest.Type.DISCONNECT, 0, socketChannel);
         server.changeRequest(disconnect);
@@ -183,10 +183,11 @@ public class Handler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
             logger.error(e.getMessage());
-            return;
+        } finally {
+            ChangeRequest accept = new ChangeRequest(ChangeRequest.Type.ACCEPT, SelectionKey.OP_ACCEPT, key.channel());
+            server.changeRequest(accept);
         }
-        ChangeRequest accept = new ChangeRequest(ChangeRequest.Type.ACCEPT, SelectionKey.OP_ACCEPT, key.channel());
-        server.changeRequest(accept);
+
 
     }
 

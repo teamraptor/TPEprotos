@@ -54,9 +54,10 @@ public class Server implements Runnable {
     public void run() {
         boolean notFull;
         while (true) {
-            logger.info(selector.keys().size());
+            logger.warn(this.name + " KEYS: " + selector.keys().size());
+            logger.warn(this.name + " REQUESTS " + requests.size());
             try {
-                selector.select();
+                selector.select(1000);
                 logger.info(this.name + " selected");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -87,7 +88,7 @@ public class Server implements Runnable {
     }
 
     public void changeRequest(ChangeRequest request) {
-        requests.offer(request);
+        requests.add(request);
         selector.wakeup();
     }
 
@@ -95,14 +96,14 @@ public class Server implements Runnable {
         Connection c;
         switch (request.getType()) {
             case CHANGEOP:
-                logger.info(this.name + " CHANGEOP");
+                logger.warn(this.name + " CHANGEOP");
                 SelectionKey key = request.getChannel().keyFor(selector);
                 key.interestOps(request.getOps());
                 c = (Connection) key.attachment();
                 c.setData(request.getData());
                 break;
             case CONNECT:
-                logger.info(this.name + " CONENCT");
+                logger.warn(this.name + " CONENCT");
                 SocketChannel client = (SocketChannel) request.getChannel();
                 SocketChannel pop3Server = null;
                 try {
@@ -127,9 +128,13 @@ public class Server implements Runnable {
 
                 break;
             case DISCONNECT:
-                logger.info(this.name + " DISCONNECT");
+                logger.warn(this.name + " DISCONNECT");
                 SocketChannel socket = (SocketChannel) request.getChannel();
                 SelectionKey key1 = socket.keyFor(selector);
+                if (key1 == null) {
+                    logger.warn("KEY == NULL");
+                    return;
+                }
                 c = (Connection) key1.attachment();
                 SelectionKey key2 = c.getPair().keyFor(selector);
 
@@ -146,7 +151,7 @@ public class Server implements Runnable {
 
                 break;
             case ACCEPT:
-                logger.info(this.name + " ACCEPT");
+                logger.warn(this.name + " ACCEPT");
                 request.getChannel().keyFor(selector).interestOps(SelectionKey.OP_ACCEPT);
             default:
 

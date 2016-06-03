@@ -19,6 +19,6 @@ public class Main {
 
         Server server = new Server(serverAddr, pop3, outbox);
         HandlerPool pool = new HandlerPool(outbox, server);
-        new Thread(server).run();
+        new Thread(server).start();
     }
 }
