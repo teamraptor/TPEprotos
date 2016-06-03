@@ -55,16 +55,13 @@ public class Handler implements Runnable {
         if (key.isValid() && key.isAcceptable()) {
             logger.info(this.name + ": ACCEPT");
             this.handleAccept(key);
-        }
-        if (key.isValid() && key.isConnectable()) {
+        } else if (key.isValid() && key.isConnectable()) {
             logger.info(this.name + ":CONNECT");
             this.handleConnect(key);
-        }
-        if (key.isValid() && key.isReadable()) {
+        } else if (key.isValid() && key.isReadable()) {
             logger.info(this.name + ":READ");
             this.handleRead(key);
-        }
-        if (key.isValid() && key.isWritable()) {
+        } else if (key.isValid() && key.isWritable()) {
             logger.info(this.name + ":WRITE");
             this.handleWrite(key);
         }
@@ -97,6 +94,7 @@ public class Handler implements Runnable {
                 logger.info(this.name + " DONE WRITING");
                 ChangeRequest read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socket);
                 server.changeRequest(read);
+                //para cerrar el otro channel en el caso de que se cierre la conexion
                 read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, c.getPair());
                 server.changeRequest(read);
             }

@@ -75,8 +75,8 @@ public class Server implements Runnable {
                         key.interestOps(ops);
                     }
                 } else {
-                    logger.warn(this.name + " invalid key");
-                    key.cancel();
+                    logger.info(this.name + " invalid key");
+                    this.closeConnection(key);
                 }
 
 
@@ -102,6 +102,7 @@ public class Server implements Runnable {
         SelectionKey key = request.getChannel().keyFor(selector);
         if (key == null) {
             logger.warn("KEY == NULL");
+            this.closeChannel(request.getChannel());
             return;
         }
         if (key.isValid()) {
