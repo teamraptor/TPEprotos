@@ -1,39 +1,44 @@
 package transformers;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class POP3Command {
-
-	private static final String ASCIIRegex = "^[ -~]+$";
-	private static final String spaceRegex = ".* {2,}.*";
-	private static final String separationRegex = "\\s{1}";
-	private static final String formRegex = ".*\\s$|^\\s.*";
-	private static final Pattern ASCIIPattern = Pattern.compile(ASCIIRegex);
-	private static final Pattern spacePattern = Pattern.compile(spaceRegex);
-	private static final Pattern separationPattern = Pattern.compile(separationRegex);
-	private static final Pattern formPattern = Pattern.compile(formRegex);
 	
-	private static final String listRegex = "LIST ^[0-9]+"; //TODO fix regex, not working properly
+	private static final String listRegex = "LIST [0-9]+\\n"; 
 	private static final Pattern listPattern = Pattern.compile(listRegex);
+	private static final String userRegex = "(u|U)(s|S)(e|E)(r|R) "; 
+	private static final Pattern userPattern = Pattern.compile(userRegex);
+	
+	private static final int USER_COMMAND_SIZE = 6;
 
 	/*
 	 * TODO validate that the user request a valid mail number.
 	 * */
-	public static boolean isMail(String command) {
-		if(!isValid(command))
+	public static boolean isMail(final String command) {
+		if(command.split(" ").length>2)
 			return false;
 		return listPattern.matcher(command).find();
 	}
 	
-	private static boolean isValid(String message) {
-		return ASCIIPattern.matcher(message).find()
-				&& spacePattern.matcher(message).find()
-				&& separationPattern.matcher(message).find()
-				&& formPattern.matcher(message).find();
-	}
-	
-	public static void main(String[] args) {
-		String c = "LIST 12876";
-		System.out.println(isMail(c));
+	public static String getUsernameIfAvailable(String command) {
+		if(command.split(" ").length>2)
+			return null;
+		Matcher aux = userPattern.matcher(command);
+		if(command.length() > USER_COMMAND_SIZE && aux.find()) {
+			if(aux.start()!=0) {
+				for (int k = 0; k < aux.start(); k++) {
+					if(command.charAt(k)!=' ')
+						return null;
+				}
+			}
+			command = command.substring(aux.end());
+			for (int i = 0; i < command.length(); i++) {
+				if(command.charAt(i)==' ')
+					return null;
+			}
+			return command;
+		}
+		return null;
 	}
 }
