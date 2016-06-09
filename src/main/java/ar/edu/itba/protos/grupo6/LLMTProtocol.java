@@ -6,7 +6,7 @@ package ar.edu.itba.protos.grupo6;
 public class LLMTProtocol {
 
     public enum LLMTCommand {
-        USER, PASS, MPLEXA, MPLEXR, STATS, QUIT, ERROR;
+        USER, PASS, MPLEX, TRANS, STAT, QUIT, ERROR;
     }
 
     public enum LLMTState {
@@ -73,9 +73,11 @@ public class LLMTProtocol {
                         return errorMessageWithMessage(INVALID_SYNTAX);
                     }
 
+                    String password = parts[1];
+
                     if(previousCommandWasUSER && usernameToMatchWithPassword != null) {
 
-                        if(true) {  // TODO - REPLACE WITH ACTUAL AUTH METHOD
+                        if(AuthenticationService.areCredentialsValid(usernameToMatchWithPassword, password)) {
                             StringBuilder sb = new StringBuilder();
                             sb.append("hi ").append(usernameToMatchWithPassword).append(" welcome");
                             response = successMessageWithMessage(sb.toString());
@@ -137,74 +139,190 @@ public class LLMTProtocol {
 
             switch (command) {
 
-                case STATS:
+                case STAT: {
 
                     /*
-                     *  Returns the list of stats
+                     *  Returns the desired stat
                      *
                      */
 
-                    if(numberOfArguments > 0) {
+                    if (numberOfArguments < 1) {
                         return errorMessageWithMessage(INVALID_SYNTAX);
                     }
 
-                    response = ReportsService.getStats();
+                    numberOfArguments = numberOfArguments - 1;
 
-                    break;
+                    String action = parts[1];
 
-                case MPLEXA:
+                    if (action.equalsIgnoreCase("naccess")) {
 
-                    /*
-                     *  Adds an account to the multiplexing list
-                     *
-                     *  @param the account_username
-                     *  @param the pop3_host
-                     */
+                        if (numberOfArguments != 0) {
+                            return errorMessageWithMessage(INVALID_SYNTAX);
+                        }
 
-                    if(numberOfArguments != 2) {
-                        return errorMessageWithMessage(INVALID_SYNTAX);
-                    }
+                        response = successMessageWithMessage(ReportsService.numberOfAccesses());
 
-                    String username = parts[1];
-                    String pop3host = parts[2];
+                    } else if (action.equalsIgnoreCase("tbytes")) {
 
-                    if(ConfigService.addToMultiplexList(username, pop3host)) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("user ").append(username).append(" was added to the POP3 server ").append(pop3host);
-                        response = successMessageWithMessage(sb.toString());
+                        if(numberOfArguments != 0) {
+                            return errorMessageWithMessage(INVALID_SYNTAX);
+                        }
+
+                        response = successMessageWithMessage(ReportsService.bytesTransfered());
+
                     } else {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("failed adding ").append(username).append(" to the POP3 server ").append(pop3host);
-                        return errorMessageWithMessage(sb.toString());
-                    }
-
-                    break;
-
-                case MPLEXR:
-                    /*
-                     *  Removes an account from the multiplexing list
-                     *
-                     *  @param the account_username to remove
-                     */
-
-                    if(numberOfArguments != 1) {
                         return errorMessageWithMessage(INVALID_SYNTAX);
                     }
 
-                    String user = parts[1];
+                    break;
+                }
 
-                    if(ConfigService.removeFromMultiplexList(user)) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("user ").append(user).append(" was removed from the multiplexing list");
-                        response = successMessageWithMessage(sb.toString());
+                case MPLEX: {
+
+                    /*
+                     *  Configures the multiplexing functionality of the server
+                     *
+                     */
+
+                    if (numberOfArguments < 1) {
+                        return errorMessageWithMessage(INVALID_SYNTAX);
+                    }
+
+                    numberOfArguments = numberOfArguments - 1;
+
+                    String action = parts[1];
+
+                    if (action.equalsIgnoreCase("A")) {
+
+                        if (numberOfArguments != 3) {
+                            return errorMessageWithMessage(INVALID_SYNTAX);
+                        }
+
+                        String username = parts[2];
+                        String pop3host = parts[3];
+                        String port = parts[4];
+
+                        if (ConfigService.addToMultiplexList(username, pop3host, port)) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("user ").append(username).append(" was added to the POP3 server ").append(pop3host).append(" at port ").append(port);
+                            response = successMessageWithMessage(sb.toString());
+                        } else {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("failed adding ").append(username).append(" to the POP3 server ").append(pop3host);
+                            return errorMessageWithMessage(sb.toString());
+                        }
+
+                    } else if (action.equalsIgnoreCase("R")) {
+
+                        if (numberOfArguments != 1) {
+                            return errorMessageWithMessage(INVALID_SYNTAX);
+                        }
+
+                        String username = parts[2];
+
+                        if (ConfigService.removeFromMultiplexList(username)) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("user ").append(username).append(" was removed from the multiplexing list");
+                            response = successMessageWithMessage(sb.toString());
+                        } else {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("failed removing ").append(username).append(" from the multiplexing list");
+                            return errorMessageWithMessage(sb.toString());
+                        }
+
+                    } else if (action.equalsIgnoreCase("D")) {
+
+                        if (numberOfArguments != 2) {
+                            return errorMessageWithMessage(INVALID_SYNTAX);
+                        }
+
+                        String pop3host = parts[2];
+                        String port = parts[3];
+
+                        if (ConfigService.setDefaultServer(pop3host, port)) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(pop3host).append(" was set as the default POP3 server at port ").append(port);
+                            response = successMessageWithMessage(sb.toString());
+                        } else {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("failed setting ").append(pop3host).append(" as the default POP3 server");
+                            return errorMessageWithMessage(sb.toString());
+                        }
+
+                    } else if (action.equalsIgnoreCase("ON")) {
+
+                        if (numberOfArguments != 0) {
+                            return errorMessageWithMessage(INVALID_SYNTAX);
+                        }
+
+                        if (ConfigService.setMultiplexing(true)) {
+                            response = successMessageWithMessage("multiplexing is now enabled");
+                        } else {
+                            return errorMessageWithMessage("failed enabling multiplexing");
+                        }
+
+                    } else if (action.equalsIgnoreCase("OFF")) {
+
+                        if (numberOfArguments != 0) {
+                            return errorMessageWithMessage(INVALID_SYNTAX);
+                        }
+
+                        if (ConfigService.setMultiplexing(false)) {
+                            response = successMessageWithMessage("multiplexing is now disabled");
+                        } else {
+                            return errorMessageWithMessage("failed disabling multiplexing");
+                        }
+
                     } else {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("failed removing ").append(user).append(" from the multiplexing list");
-                        return errorMessageWithMessage(sb.toString());
+                        return errorMessageWithMessage(INVALID_SYNTAX);
                     }
 
                     break;
+                }
+                case TRANS: {
 
+                    /*
+                     *  Configures the transformations made by the proxy
+                     */
+
+                    if (numberOfArguments < 1) {
+                        return errorMessageWithMessage(INVALID_SYNTAX);
+                    }
+
+                    numberOfArguments = numberOfArguments - 1;
+
+                    String action = parts[1];
+
+                    if (action.equalsIgnoreCase("ON")) {
+
+                        if (numberOfArguments != 0) {
+                            return errorMessageWithMessage(INVALID_SYNTAX);
+                        }
+
+                        if (ConfigService.setTransformations(true)) {
+                            response = successMessageWithMessage("transformations are now enabled");
+                        } else {
+                            return errorMessageWithMessage("failed enabling transformations");
+                        }
+
+                    } else if (action.equalsIgnoreCase("OFF")) {
+
+                        if (numberOfArguments != 0) {
+                            return errorMessageWithMessage(INVALID_SYNTAX);
+                        }
+
+                        if (ConfigService.setTransformations(false)) {
+                            response = successMessageWithMessage("transformations are now disabled");
+                        } else {
+                            return errorMessageWithMessage("failed disabling transformations");
+                        }
+
+                    } else {
+                        return errorMessageWithMessage(INVALID_SYNTAX);
+                    }
+
+                    break;
+                }
                 case QUIT:
 
                     /*

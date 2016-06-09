@@ -6,7 +6,7 @@ import java.net.Socket;
 
 public class BackServer implements Runnable{
 
-    private Boolean listening = Boolean.TRUE;
+    private boolean listening = true;
     private int port = 0000;
 
     public BackServer(int port) {

@@ -7,7 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Main {
 
-    private final static int BACK_SERVER_PORT = 9090;
+    private final static int BACK_SERVER_PORT = 7297;
 
     public static void main(String[] args) {
         InetSocketAddress serverAddr = new InetSocketAddress("localhost", 8080);

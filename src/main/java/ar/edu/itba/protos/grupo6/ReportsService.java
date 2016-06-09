@@ -5,8 +5,11 @@ package ar.edu.itba.protos.grupo6;
  */
 public class ReportsService {
 
-    public static String getStats() {
-        return "Number of images: 3\nBytes transfered: 4129";
+    public static String numberOfAccesses() {
+        return "233";
     }
 
+    public static String bytesTransfered() {
+        return "1927314";
+    }
 }
