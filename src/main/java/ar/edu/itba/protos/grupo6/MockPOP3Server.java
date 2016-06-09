@@ -5,12 +5,27 @@ package ar.edu.itba.protos.grupo6;
  */
 public class MockPOP3Server {
 
-    public String greeting() {
-        return "+OK hello";
+    public static String response(String s) {
+
+        if (s.isEmpty()) {
+            return greeting();
+        } else if (s.toUpperCase().equals("CAPA")) {
+            return capbilities();
+        } else {
+            return error();
+        }
     }
 
-    public String capbilities() {
-        return "ERR";
+    public static String greeting() {
+        return "+OK hello\r\n";
+    }
+
+    private static String capbilities() {
+        return "";
+    }
+
+    private static String error() {
+        return "-ERR\r\n";
     }
 
 }

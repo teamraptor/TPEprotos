@@ -55,7 +55,7 @@ public class Server implements Runnable {
             logger.trace(this.name + " REQUESTS " + requests.size());
             try {
                 selector.select(1000);
-                logger.info(this.name + " selected");
+                logger.trace(this.name + " selected");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -99,6 +99,7 @@ public class Server implements Runnable {
     private void handleChangeOp(ChangeRequest request) {
         Connection c;
         logger.info(this.name + " CHANGEOP");
+        logger.info(this.name + " " + request.getChannel());
         SelectionKey key = request.getChannel().keyFor(selector);
         if (key == null) {
             logger.warn("KEY == NULL");
@@ -130,18 +131,43 @@ public class Server implements Runnable {
         Connection c;
         logger.info(this.name + " CONENCT");
         SocketChannel client = (SocketChannel) request.getChannel();
+        InetSocketAddress to = request.getTo();
+
+        if (to == null) {
+            SelectionKey key;
+            logger.info(this.name + " Connectiong Client");
+            c = new Connection(null);
+            c.setStatus(Connection.Status.AUTH);
+            c.appendData(MockPOP3Server.greeting());
+            try {
+                key = client.register(selector, SelectionKey.OP_WRITE, c);
+
+            } catch (ClosedChannelException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+            }
+
+            return;
+        }
+        logger.info(this.name + " Connectiong POP");
         SocketChannel pop3Server = null;
         try {
             pop3Server = SocketChannel.open();
             pop3Server.configureBlocking(false);
-            pop3Server.connect(pop3);
+            pop3Server.connect(request.getTo());
         } catch (IOException e) {
             e.printStackTrace();
             logger.error(e.getMessage());
             this.closeChannel(client);
         }
 
+        c = (Connection) client.keyFor(selector).attachment();
+        c.setStatus(Connection.Status.CONENCTED);
+        c.setPair(pop3Server);
+
         c = new Connection(client);
+        c.setUser(request.getData());
+        c.setStatus(Connection.Status.MULTIPLEX);
         SelectionKey popKey;
         try {
             popKey = pop3Server.register(selector, SelectionKey.OP_CONNECT, c);
@@ -152,14 +178,7 @@ public class Server implements Runnable {
             return;
         }
 
-        c = new Connection(pop3Server);
-        try {
-            client.register(selector, 0, c);
-        } catch (ClosedChannelException e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
-            this.closeConnection(popKey);
-        }
+
 
     }
 
@@ -192,6 +211,10 @@ public class Server implements Runnable {
 
 
     private void handleRequest(ChangeRequest request) {
+
+        if (request.getChannel() == null) {
+            return;
+        }
 
         if (request.getType() != ChangeRequest.Type.CONNECT && request.getChannel().keyFor(selector) == null) {
             this.closeChannel(request.getChannel());

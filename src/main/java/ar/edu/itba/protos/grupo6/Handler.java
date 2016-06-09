@@ -1,9 +1,12 @@
 package ar.edu.itba.protos.grupo6;
 
 import org.apache.log4j.Logger;
+import transformers.L33t1f13r;
+import transformers.POP3Utils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
@@ -92,6 +95,7 @@ public class Handler implements Runnable {
             } else {
                 c.setIndex(0);
                 logger.info(this.name + " DONE WRITING");
+                logger.info(c.getData());
                 ChangeRequest read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socket);
                 server.changeRequest(read);
                 //para cerrar el otro channel en el caso de que se cierre la conexion
@@ -107,6 +111,7 @@ public class Handler implements Runnable {
     }
 
     private void handleRead(SelectionKey key) {
+
         SocketChannel socketChannel = (SocketChannel) key.channel();
 
         int numRead = 0;
@@ -144,10 +149,36 @@ public class Handler implements Runnable {
 
         POP3 msg = parser.parse(c.getData());
 
+
+        switch (c.getStatus()) {
+            case AUTH:
+                logger.info(this.name + " AUTH");
+                String user = POP3Utils.getUsernameIfAvailable(c.getData());
+                if (user != null) {
+                    InetSocketAddress popServerAddr = Multplexer.getHost(user);
+                    ChangeRequest connect = new ChangeRequest(ChangeRequest.Type.CONNECT, socketChannel, popServerAddr, msg.data());
+                    server.changeRequest(connect);
+                    return;
+
+                }
+                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socketChannel, MockPOP3Server.response(msg.data()));
+                server.changeRequest(write);
+                return;
+            case MULTIPLEX:
+                logger.info(this.name + " MULTIPLEX");
+                c.setStatus(Connection.Status.CONENCTED);
+                ChangeRequest writeUser = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socketChannel, c.getUser());
+                server.changeRequest(writeUser);
+                return;
+        }
+
+
+
         if (msg.isDone()) {
             logger.info(this.name + " DONE READING");
+            logger.info(msg.data());
             msg = worker.process(msg);
-            ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), msg.data());
+            ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), L33t1f13r.l33t1fy(msg.data()));
             server.changeRequest(write);
             return;
         }

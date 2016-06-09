@@ -10,6 +10,8 @@ public class Connection {
     private SocketChannel pair;
     private StringBuilder data;
     private int index;
+    private Status status;
+    private String user = "";
 
 
     public Connection(SocketChannel pair) {
@@ -18,6 +20,13 @@ public class Connection {
         this.index = 0;
     }
 
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 
     public SocketChannel getPair() {
         return pair;
@@ -45,5 +54,17 @@ public class Connection {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public enum Status {
+        AUTH, CONENCTED, MULTIPLEX
     }
 }
