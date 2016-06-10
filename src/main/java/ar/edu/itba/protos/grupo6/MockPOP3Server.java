@@ -8,13 +8,15 @@ import org.apache.log4j.Logger;
 public class MockPOP3Server {
 
     public static String response(String s) {
-
-        Logger.getLogger(MockPOP3Server.class.getName()).info(s.toUpperCase());
+        Logger logger = Logger.getLogger(MockPOP3Server.class.getName());
         String command = s.toUpperCase();
-        if (command.equals("CAPA\n")) {
+
+        if (command.matches("CAPA(\r)?\n")) {
             return capbilities();
-        } else if (command.equals("QUIT\n")) {
+        } else if (command.matches("QUIT(\r)?\n")) {
             return quit();
+        } else if (command.matches("YOU PASS BUTTER(\r)?\n")) {
+            return "OH MY GOD!\r\n";
         } else {
             return error();
         }
@@ -35,6 +37,6 @@ public class MockPOP3Server {
     }
 
     public static String quit() {
-        return "+OK OH NO!\r\n";
+        return "+OK BYE!\r\n";
     }
 }
