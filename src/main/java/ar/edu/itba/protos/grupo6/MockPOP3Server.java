@@ -9,7 +9,7 @@ public class MockPOP3Server {
 
     public static String response(String s) {
 
-        Logger.getLogger(MockPOP3Server.class.getName()).warn(s.toUpperCase());
+        Logger.getLogger(MockPOP3Server.class.getName()).info(s.toUpperCase());
         String command = s.toUpperCase();
         if (command.equals("CAPA\n")) {
             return capbilities();
@@ -27,7 +27,7 @@ public class MockPOP3Server {
     }
 
     private static String capbilities() {
-        return "";
+        return "+OK capabilities:\r\nUSER\r\n.\r\n";
     }
 
     private static String error() {

@@ -1,7 +1,6 @@
 package ar.edu.itba.protos.grupo6;
 
 import org.apache.log4j.Logger;
-import transformers.L33t1f13r;
 import transformers.POP3Utils;
 
 import java.io.IOException;
@@ -28,7 +27,7 @@ public class Handler implements Runnable {
     public Handler(Server server, BlockingQueue<SelectionKey> inbox, String name) {
 
         this.server = server;
-        this.buf = ByteBuffer.allocateDirect(4096);
+        this.buf = ByteBuffer.allocateDirect((int) Math.pow(2, 20));
         this.parser = new Parser();
         this.worker = new Worker();
         this.inbox = inbox;
@@ -181,9 +180,8 @@ public class Handler implements Runnable {
 
         if (msg.isDone()) {
             logger.info(this.name + " DONE READING");
-            logger.info(L33t1f13r.l33t1fy(msg.data()));
             msg = worker.process(msg);
-            ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), L33t1f13r.l33t1fy(msg.data()));
+            ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), msg.data());
             server.changeRequest(write);
             return;
         }

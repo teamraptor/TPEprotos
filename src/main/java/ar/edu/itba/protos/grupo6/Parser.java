@@ -13,13 +13,13 @@ public class Parser {
     }
 
     public POP3 parse(String s) {
-        String[] lines = s.split("\n");
-        String[] subject = s.split("Subject:*\r\n");
+        //String[] lines = s.split("\r\n");
+        //logger.warn(lines.length);
 
 
         POP3 msg = new POP3();
         msg.setData(s);
-        if (lines.length > 1 || s.getBytes().length > 255) {
+        if (s.getBytes().length > 255) {
             if (s.contains("\r\n.\r\n")) {
                 msg.setDone();
             }
