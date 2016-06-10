@@ -10,7 +10,10 @@ import java.net.InetSocketAddress;
 public class Multplexer {
 
     public static InetSocketAddress getHost(String user) {
+
         Logger.getLogger(Multplexer.class.getName()).info(user);
+
+        //return new InetSocketAddress("pop.gmail.com",110);
         return new InetSocketAddress("pop.gmx.com", 110);
     }
 }

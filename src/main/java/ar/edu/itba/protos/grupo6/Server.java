@@ -159,6 +159,7 @@ public class Server implements Runnable {
             e.printStackTrace();
             logger.error(e.getMessage());
             this.closeChannel(client);
+            return;
         }
 
         c = (Connection) client.keyFor(selector).attachment();
@@ -199,10 +200,15 @@ public class Server implements Runnable {
             return;
         }
         Connection c = (Connection) key.attachment();
-        SelectionKey pair = c.getPair().keyFor(selector);
+
 
         key.cancel();
         this.closeChannel(key.channel());
+        SocketChannel channel = c.getPair();
+        if (channel == null) {
+            return;
+        }
+        SelectionKey pair = c.getPair().keyFor(selector);
         if (pair != null) {
             pair.cancel();
             this.closeChannel(pair.channel());

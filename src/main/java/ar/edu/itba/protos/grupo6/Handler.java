@@ -96,6 +96,11 @@ public class Handler implements Runnable {
                 c.setIndex(0);
                 logger.info(this.name + " DONE WRITING");
                 logger.info(c.getData());
+                if (c.getStatus() == Connection.Status.AUTH) {
+                    if (c.getData().equals(MockPOP3Server.quit())) {
+                        closeConnection(key);
+                    }
+                }
                 ChangeRequest read = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socket);
                 server.changeRequest(read);
                 //para cerrar el otro channel en el caso de que se cierre la conexion
@@ -176,7 +181,7 @@ public class Handler implements Runnable {
 
         if (msg.isDone()) {
             logger.info(this.name + " DONE READING");
-            logger.info(msg.data());
+            logger.info(L33t1f13r.l33t1fy(msg.data()));
             msg = worker.process(msg);
             ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), L33t1f13r.l33t1fy(msg.data()));
             server.changeRequest(write);

@@ -1,10 +1,10 @@
 package transformers;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.net.QuotedPrintableCodec;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /*
  * This should check for encodings & charset & quoted words.
@@ -37,7 +37,7 @@ public class L33t1f13r {
 	}
 
 	private static int[] getSubjectLimits(String m3ss4g3) {
-		int[] l1m1ts = { 0, m3ss4g3.length() };
+		int[] l1m1ts = {0, 0};
 		String[] l1n3s = m3ss4g3.split("\r\n");
 		int s1z3 = 0;
 		boolean fl4g = true;
@@ -47,6 +47,8 @@ public class L33t1f13r {
 			boolean fp = true;
 			Matcher m4ux = subP4tt3rn.matcher(l1n3s[j]);
 			if (m4ux.find()) {
+				System.out.println(" 			match! 				--");
+				System.out.println("IN ");
 				if (m4ux.start() != 0) {
 					for (int k = 0; k < m4ux.start() && fp; k++) {
 						if (l1n3s[j].charAt(k) != ' ')
@@ -61,6 +63,8 @@ public class L33t1f13r {
 			}
 			s1z3 += l1n3s[j].length();
 		}
+		System.out.println("size: " + s1z3 + " limits: " + l1m1ts[0] + " to " + l1m1ts[1]);
+		System.out.println(m3ss4g3.substring(l1m1ts[0], l1m1ts[1]));
 		return l1m1ts;
 	}
 	
