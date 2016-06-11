@@ -5,9 +5,9 @@ import java.util.regex.Pattern;
 
 public class POP3Utils {
 	
-	private static final String listRegex = "^RETR [0-9]+\\r\\n"; 
+	private static final String retrRegex = "^RETR [0-9]+\\r\\n"; 
 	private static final String userRegex = "^(u|U)(s|S)(e|E)(r|R) "; 
-	private static final Pattern listPattern = Pattern.compile(listRegex);
+	private static final Pattern retrPattern = Pattern.compile(retrRegex);
 	private static final Pattern userPattern = Pattern.compile(userRegex);
 
 	private static final String DOT = "\r\n.\r\n";
@@ -17,7 +17,7 @@ public class POP3Utils {
 	public static boolean isMailComing(String command) {
 		if(command.split(" ").length>2)
 			return false;
-		return listPattern.matcher(command).find();
+		return retrPattern.matcher(command).find();
 	}
 	
 	public static boolean isOK(String responseLine) {
