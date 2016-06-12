@@ -49,6 +49,7 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
+
         boolean notFull;
         while (true) {
             logger.trace(this.name + " KEYS: " + selector.keys().size());
