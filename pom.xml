@@ -5,20 +5,30 @@
 
     <groupId>ar.edu.itba.protos.grupo6</groupId>
     <artifactId>TPE</artifactId>
-    <version>1.0</version>
+    <version>1.0-RELEASE</version>
     <packaging>jar</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.version>3.1</maven.version>
+        <maven-jar.version>3.0.1</maven-jar.version>
+        <maven-shade.version>2.4.3</maven-shade.version>
+        <java.version>1.8</java.version>
+        <junit.version>4.11</junit.version>
+        <log4j.version>1.2.17</log4j.version>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <version>${log4j.version}</version>
         </dependency>
     </dependencies>
 
@@ -27,14 +37,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.version}</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar.version}</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -46,6 +58,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -55,7 +68,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <finalName>${artifactId}-${version}</finalName>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
                 </configuration>
             </plugin>
         </plugins>

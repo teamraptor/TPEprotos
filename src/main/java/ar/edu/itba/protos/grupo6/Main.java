@@ -18,6 +18,12 @@ public class Main {
         Server server = new Server(serverAddr, pop3, outbox);
         HandlerPool pool = new HandlerPool(outbox, server);
 
+        System.out.println("[DONE] POP3 proxy started");
+        System.out.println("[INFO] POP3 proxy listening at port " + serverAddr.getPort());
+
+        System.out.println("[DONE] LLMTP server started");
+        System.out.println("[INFO] LLMTP server listening at port " + BACK_SERVER_PORT);
+
         new Thread(server).start();
         new Thread(new BackServer(BACK_SERVER_PORT)).start();
     }

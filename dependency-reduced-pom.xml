@@ -3,18 +3,20 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ar.edu.itba.protos.grupo6</groupId>
   <artifactId>TPE</artifactId>
-  <version>1.0</version>
+  <version>1.0-RELEASE</version>
   <build>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.version}</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven-jar.version}</version>
         <configuration>
           <archive>
             <manifest>
@@ -25,6 +27,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven-shade.version}</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -34,7 +37,7 @@
           </execution>
         </executions>
         <configuration>
-          <finalName>${artifactId}-${version}</finalName>
+          <finalName>${project.artifactId}-${project.version}</finalName>
         </configuration>
       </plugin>
     </plugins>
@@ -53,5 +56,14 @@
       </exclusions>
     </dependency>
   </dependencies>
+  <properties>
+    <java.version>1.8</java.version>
+    <log4j.version>1.2.17</log4j.version>
+    <maven-shade.version>2.4.3</maven-shade.version>
+    <maven-jar.version>3.0.1</maven-jar.version>
+    <maven.version>3.1</maven.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <junit.version>4.11</junit.version>
+  </properties>
 </project>
 
