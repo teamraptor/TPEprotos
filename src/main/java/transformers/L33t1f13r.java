@@ -1,8 +1,5 @@
 package transformers;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.net.QuotedPrintableCodec;
 
@@ -12,31 +9,17 @@ public class L33t1f13r {
 		TR4NSF0RM, Q1, CH4RS3T, NC0D1NG, Q2, DTR4NSF0RM, Q4, F1N1SH, ERR0R
 	}
 
-	private static final String CRLF = "\r\n";
-	private static final String subR3g3x = "^(s|S)(u|U)(b|B)(j|J)(e|E)(c|C)(t|T): ";
-	private static final Pattern subP4tt3rn = Pattern.compile(subR3g3x);
-	private static final String E0L = "\n";
-
-	private static final int M4X_L1N3_L3NGTH = 998;
 	private static final int M4X_3NC0D1NG_L3NGTH = 75;
-
-	public static String l33t1fy(String m3ss4g3) {
-		int[] l1m1ts = getSubjectLimits(m3ss4g3);
-		if (l1m1ts == null)
-			return null;
-		return l33t3r(m3ss4g3.toCharArray(), l1m1ts[0], l1m1ts[1]);
-	}
 
 	/*
 	 * TODO accept comments
 	 * */
-	private static String l33t3r(char[] m3ss4g3, final int st4rt, final int f1n1sh) {
+	public static String l33t3r(char[] m3ss4g3, final int st4rt, final int f1n1sh) {
 		ST4T3S st4t3 = ST4T3S.TR4NSF0RM;
 		StringBuilder ch4rs3t = new StringBuilder("");
 		StringBuilder nM3ss4g3 = new StringBuilder("");
 		char nc0d1ng = 0;
-		int[] l1m1ts = { 0, 0 };
-		int nc0d3l1m1t = 1;
+		int[] l1m1ts = { 0, 1 };
 		boolean fl4g = true;
 		for (int k = st4rt; k <= f1n1sh && fl4g; k++) {
 			switch (st4t3) {
@@ -44,6 +27,7 @@ public class L33t1f13r {
 				if (m3ss4g3[k] != '=') {
 					nM3ss4g3.append(transform(m3ss4g3[k]));
 				} else {
+					nM3ss4g3.append(m3ss4g3[k]);
 					st4t3 = ST4T3S.Q1;
 				}
 				break;
@@ -54,21 +38,21 @@ public class L33t1f13r {
 					if (m3ss4g3[k] != '=')
 						st4t3 = ST4T3S.TR4NSF0RM;
 				}
+				nM3ss4g3.append(m3ss4g3[k]);
 				break;
 			case CH4RS3T:
 				if (m3ss4g3[k] != '?') {
-					nc0d3l1m1t++;
 					ch4rs3t = ch4rs3t.append(Character.toUpperCase(m3ss4g3[k]));
 				} else {
-					nc0d3l1m1t = 1;
+					nM3ss4g3.append(ch4rs3t).append(m3ss4g3[k]);
 					st4t3 = ST4T3S.NC0D1NG;
 				}
 				break;
 			case NC0D1NG:
 				m3ss4g3[k] = Character.toUpperCase(m3ss4g3[k]);
 				if (m3ss4g3[k] == 'B' || m3ss4g3[k] == 'Q') {
-					nc0d3l1m1t++;
 					nc0d1ng = m3ss4g3[k];
+					nM3ss4g3.append(m3ss4g3[k]);
 					st4t3 = ST4T3S.Q2;
 				} else {
 					st4t3 = ST4T3S.ERR0R;
@@ -76,7 +60,7 @@ public class L33t1f13r {
 				break;
 			case Q2:
 				if (m3ss4g3[k] == '?') {
-					nc0d3l1m1t++;
+					nM3ss4g3.append(m3ss4g3[k]);
 					st4t3 = ST4T3S.DTR4NSF0RM;
 				} else {
 					st4t3 = ST4T3S.ERR0R;
@@ -90,25 +74,25 @@ public class L33t1f13r {
 						l1m1ts[1]++;
 					}
 				} else {
-					if (v4l1d3nc0d1ng(nc0d1ng, l1m1ts[1] - l1m1ts[0], nc0d3l1m1t)) {
+					if (v4l1d3nc0d1ng(nc0d1ng, l1m1ts[1])) {
 						String tmp = nc0d3dTr4nsform3r(m3ss4g3, ch4rs3t, nc0d1ng, l1m1ts[0], l1m1ts[1]);
 						if (tmp == null) {
 							st4t3 = ST4T3S.ERR0R;
 						} else {
-							nM3ss4g3.append(tmp);
-							l1m1ts[0] = l1m1ts[1] = 0;
+							nM3ss4g3.append(tmp).append(m3ss4g3[k]);
+							l1m1ts[0] = 0;
+							l1m1ts[1] = 1;
 							st4t3 = ST4T3S.Q4;
 						}
 					} else {
 						st4t3 = ST4T3S.ERR0R;
 					}
 				}
-				nc0d3l1m1t++;
 				break;
 			case Q4:
 				if (m3ss4g3[k] == '=') {
 					ch4rs3t = ch4rs3t.delete(0, ch4rs3t.length());
-					nc0d3l1m1t = 1;
+					nM3ss4g3.append(m3ss4g3[k]);
 					st4t3 = ST4T3S.TR4NSF0RM;
 				} else {
 					st4t3 = ST4T3S.ERR0R;
@@ -124,8 +108,8 @@ public class L33t1f13r {
 		return fl4g?nM3ss4g3.toString():null;
 	}
 
-	private static boolean v4l1d3nc0d1ng(char nc0d1ng, int s1z3, int m4x) {
-		if (m4x > M4X_3NC0D1NG_L3NGTH)
+	private static boolean v4l1d3nc0d1ng(char nc0d1ng, int s1z3) {
+		if (s1z3 > M4X_3NC0D1NG_L3NGTH)
 			return false;
 		if (nc0d1ng == 'Q' || (nc0d1ng == 'B' && s1z3 % 4 == 0))
 			return true;
@@ -148,34 +132,12 @@ public class L33t1f13r {
 			return c;
 		}
 	}
-
-	private static int[] getSubjectLimits(String m3ss4g3) {
-		int[] l1m1ts = { 0, 0 };
-		String[] l1n3s = m3ss4g3.split(CRLF);
-		int s1z3 = 0;
-		boolean fl4g = true;
-		/*
-		 * So far... we don't parse the subject until it's completed
-		 */
-		for (int j = 0; j < l1n3s.length - 1 && fl4g && !l1n3s[j].equals(E0L); j++) {
-			if (l1n3s[j].length() > M4X_L1N3_L3NGTH)
-				return null;
-			Matcher m4ux = subP4tt3rn.matcher(l1n3s[j]);
-			if (m4ux.find() && m4ux.start() == 0) {
-				l1m1ts[0] = s1z3 + m4ux.end();
-				l1m1ts[1] = s1z3 + l1n3s[j].length();
-				fl4g = false;
-			}
-			s1z3 += l1n3s[j].length() + CRLF.length();
-		}
-		return l1m1ts;
-	}
 	
-	private static String nc0d3dTr4nsform3r(char[] m3ss4g3, StringBuilder ch4rs3t, char nc0d1ng, int fr0m, int t0) {
+	private static String nc0d3dTr4nsform3r(char[] m3ss4g3, StringBuilder ch4rs3t, char nc0d1ng, int fr0m, int c0unt) {
 		if(nc0d1ng=='B') {
-			return b4s364Tr4nsform3r(new String(m3ss4g3, fr0m,t0), ch4rs3t.toString());
+			return b4s364Tr4nsform3r(new String(m3ss4g3, fr0m,c0unt), ch4rs3t.toString());
 		} else {
-			return QPTr4nsf0rm3r(new String(m3ss4g3, fr0m,t0), ch4rs3t.toString());
+			return QPTr4nsf0rm3r(new String(m3ss4g3, fr0m,c0unt), ch4rs3t.toString());
 		}
 	}
 
@@ -186,7 +148,7 @@ public class L33t1f13r {
 			char[] r3sult = new String(byt3, ch4rs3t).toCharArray();
 			for (int k = 0; k < r3sult.length; k++) 
 				r3sult[k] = transform(r3sult[k]);
-			return b64.encodeToString(String.valueOf(r3sult).getBytes());
+			return b64.encodeToString(String.valueOf(r3sult).getBytes()).substring(0,m3ss4g3.length()); //delete CRLF with substring
 		} catch (Exception f) {
 			return null;
 		}
@@ -203,4 +165,33 @@ public class L33t1f13r {
 			return null;
 		}
 	}
+//	
+//
+//	private static String contentTypeRegex = "^(c|C)(o|O)(n|N)(t|T)(e|E)(n|N)(t|T)-(t|T)(y|Y)(p|P)(e|E): (m|M)(u|U)(l|L)(t|T)(i|I)(p|P)(a|A)(r|T)/(m|M)(i|I)(x|X)(e|E)(d|D); (b|B)(o|O)(u|U)(n|N)(d|D)(a|A)(r|R)(y|Y)=";
+//	private static final String subRegex = "^(s|S)(u|U)(b|B)(j|J)(e|E)(c|C)(t|T): ";
+//	private static final String mimeRegex = "^(m|M)(i|I)(m|M)(e|E)-(v|V)(e|E)(r|R)(s|S)(i|I)(o|O)(n|N): 1.0\r\n";
+//	private static final Pattern contentTypePattern = Pattern.compile(contentTypeRegex);
+//	private static final Pattern subPattern = Pattern.compile(subRegex);
+//	private static final Pattern mimePattern = Pattern.compile(mimeRegex);
+//	private static final String CRLF = "\r\n";
+//
+//	
+//	private static int[] getSubjectLimits(String m3ss4g3) {
+//		int[] l1m1ts = { 0, 0 };
+//		String[] l1n3s = m3ss4g3.split(CRLF);
+//		int s1z3 = 0;
+//		boolean fl4g = true;
+//		for (int j = 0; j < l1n3s.length - 1 && fl4g && !l1n3s[j].equals("\n"); j++) {
+//			if (l1n3s[j].length() > 998)
+//				return null;
+//			Matcher m4ux = subPattern.matcher(l1n3s[j]);
+//			if (m4ux.find() && m4ux.start() == 0) {
+//				l1m1ts[0] = s1z3 + m4ux.end();
+//				l1m1ts[1] = s1z3 + l1n3s[j].length();
+//				fl4g = false;
+//			}
+//			s1z3 += l1n3s[j].length() + CRLF.length();
+//		}
+//		return l1m1ts;
+//	}
 }
