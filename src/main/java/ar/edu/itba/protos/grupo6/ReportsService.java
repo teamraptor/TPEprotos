@@ -1,15 +1,29 @@
 package ar.edu.itba.protos.grupo6;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Created by lumarzo on 03/06/16.
  */
-public class ReportsService {
+public enum ReportsService {
+    INSTANCE;
 
-    public static String numberOfAccesses() {
-        return "233";
+    private AtomicInteger numberOfAccesses = new AtomicInteger(0);
+    private AtomicInteger bytesTransfered = new AtomicInteger(0);
+
+    public int numberOfAccesses() {
+        return numberOfAccesses.get();
     }
 
-    public static String bytesTransfered() {
-        return "1927314";
+    public int bytesTransfered() {
+        return bytesTransfered.get();
+    }
+
+    public void reportTransfer(int bytes) {
+        bytesTransfered.addAndGet(bytes);
+    }
+
+    public void reportAccess(int bytes) {
+        numberOfAccesses.addAndGet(bytes);
     }
 }

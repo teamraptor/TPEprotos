@@ -77,7 +77,7 @@ public class LLMTProtocol {
 
                     if(previousCommandWasUSER && usernameToMatchWithPassword != null) {
 
-                        if(AuthenticationService.areCredentialsValid(usernameToMatchWithPassword, password)) {
+                        if(ConfigService.INSTANCE.areCredentialsValid(usernameToMatchWithPassword, password)) {
                             StringBuilder sb = new StringBuilder();
                             sb.append("hi ").append(usernameToMatchWithPassword).append(" welcome");
                             response = successMessageWithMessage(sb.toString());
@@ -160,7 +160,7 @@ public class LLMTProtocol {
                             return errorMessageWithMessage(INVALID_SYNTAX);
                         }
 
-                        response = successMessageWithMessage(ReportsService.numberOfAccesses());
+                        response = successMessageWithMessage(Integer.toString(ReportsService.INSTANCE.numberOfAccesses()));
 
                     } else if (action.equalsIgnoreCase("tbytes")) {
 
@@ -168,7 +168,7 @@ public class LLMTProtocol {
                             return errorMessageWithMessage(INVALID_SYNTAX);
                         }
 
-                        response = successMessageWithMessage(ReportsService.bytesTransfered());
+                        response = successMessageWithMessage(Integer.toString(ReportsService.INSTANCE.bytesTransfered()));
 
                     } else {
                         return errorMessageWithMessage(INVALID_SYNTAX);
@@ -202,7 +202,7 @@ public class LLMTProtocol {
                         String pop3host = parts[3];
                         String port = parts[4];
 
-                        if (ConfigService.addToMultiplexList(username, pop3host, port)) {
+                        if (ConfigService.INSTANCE.addToMultiplexList(username, pop3host, port)) {
                             StringBuilder sb = new StringBuilder();
                             sb.append("user ").append(username).append(" was added to the POP3 server ").append(pop3host).append(" at port ").append(port);
                             response = successMessageWithMessage(sb.toString());
@@ -220,7 +220,7 @@ public class LLMTProtocol {
 
                         String username = parts[2];
 
-                        if (ConfigService.removeFromMultiplexList(username)) {
+                        if (ConfigService.INSTANCE.removeFromMultiplexList(username)) {
                             StringBuilder sb = new StringBuilder();
                             sb.append("user ").append(username).append(" was removed from the multiplexing list");
                             response = successMessageWithMessage(sb.toString());
@@ -239,7 +239,7 @@ public class LLMTProtocol {
                         String pop3host = parts[2];
                         String port = parts[3];
 
-                        if (ConfigService.setDefaultServer(pop3host, port)) {
+                        if (ConfigService.INSTANCE.setDefaultServer(pop3host, port)) {
                             StringBuilder sb = new StringBuilder();
                             sb.append(pop3host).append(" was set as the default POP3 server at port ").append(port);
                             response = successMessageWithMessage(sb.toString());
@@ -255,7 +255,7 @@ public class LLMTProtocol {
                             return errorMessageWithMessage(INVALID_SYNTAX);
                         }
 
-                        if (ConfigService.setMultiplexing(true)) {
+                        if (ConfigService.INSTANCE.setMultiplexing(true)) {
                             response = successMessageWithMessage("multiplexing is now enabled");
                         } else {
                             return errorMessageWithMessage("failed enabling multiplexing");
@@ -267,7 +267,7 @@ public class LLMTProtocol {
                             return errorMessageWithMessage(INVALID_SYNTAX);
                         }
 
-                        if (ConfigService.setMultiplexing(false)) {
+                        if (ConfigService.INSTANCE.setMultiplexing(false)) {
                             response = successMessageWithMessage("multiplexing is now disabled");
                         } else {
                             return errorMessageWithMessage("failed disabling multiplexing");
@@ -299,7 +299,7 @@ public class LLMTProtocol {
                             return errorMessageWithMessage(INVALID_SYNTAX);
                         }
 
-                        if (ConfigService.setTransformations(true)) {
+                        if (ConfigService.INSTANCE.setTransformations(true)) {
                             response = successMessageWithMessage("transformations are now enabled");
                         } else {
                             return errorMessageWithMessage("failed enabling transformations");
@@ -311,7 +311,7 @@ public class LLMTProtocol {
                             return errorMessageWithMessage(INVALID_SYNTAX);
                         }
 
-                        if (ConfigService.setTransformations(false)) {
+                        if (ConfigService.INSTANCE.setTransformations(false)) {
                             response = successMessageWithMessage("transformations are now disabled");
                         } else {
                             return errorMessageWithMessage("failed disabling transformations");

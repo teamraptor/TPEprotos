@@ -1,0 +1,10 @@
+#ADMIN
+tomi 147852
+admin admin
+#MPLEXU
+#MPLEX
+false
+#MPLEXD
+pop.gmx.com 110
+#TRANS
+false

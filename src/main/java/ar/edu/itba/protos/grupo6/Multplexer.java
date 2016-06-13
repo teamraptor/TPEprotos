@@ -13,7 +13,8 @@ public class Multplexer {
 
         Logger.getLogger(Multplexer.class.getName()).info(user);
 
-        //return new InetSocketAddress("pop.gmail.com",110);
-        return new InetSocketAddress("pop.gmx.com", 110);
+        InetSocketAddress address = ConfigService.INSTANCE.hostForUser(user.trim());
+
+        return address;
     }
 }

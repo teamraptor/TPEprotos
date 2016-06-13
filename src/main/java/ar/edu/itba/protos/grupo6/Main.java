@@ -17,6 +17,7 @@ public class Main {
         //set initial capacity
         BlockingQueue<SelectionKey> outbox = new LinkedBlockingQueue<>();
 
+        ConfigService.INSTANCE.initialize("config.txt");
 
         // CREATING THE POP3 PROXY
         Server server = new Server(serverAddr, pop3, outbox);
