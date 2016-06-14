@@ -1,6 +1,7 @@
 package ar.edu.itba.protos.grupo6;
 
 import org.apache.log4j.Logger;
+import transformers.MIMETransformer;
 import transformers.POP3Utils;
 
 import java.io.IOException;
@@ -17,12 +18,14 @@ import java.util.concurrent.BlockingQueue;
  */
 public class Handler implements Runnable {
     Logger logger;
+    Logger access;
     private Server server;
     private ByteBuffer buf;
     private Parser parser;
     private Worker worker;
     private BlockingQueue<SelectionKey> inbox;
     private String name;
+    private MIMETransformer transformer;
 
     public Handler(Server server, BlockingQueue<SelectionKey> inbox, String name) {
 
@@ -32,6 +35,8 @@ public class Handler implements Runnable {
         this.worker = new Worker();
         this.inbox = inbox;
         this.name = name;
+        this.transformer = new MIMETransformer();
+        this.access = Logger.getLogger("accessLogger");
         this.logger = Logger.getLogger(Handler.class.getName());
     }
 
@@ -84,17 +89,19 @@ public class Handler implements Runnable {
         try {
             buf.flip();
             int numWrite = socket.write(buf);
+            ReportsService.INSTANCE.reportTransfer(numWrite);
             logger.info(this.name + " wrote " + numWrite + " bytes");
             buf.clear();
             c.setIndex(i + numWrite);
             if (c.getIndex() < data.length) {
                 logger.info(this.name + " NOT DONE WRITING");
-                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socket, c.getData());
+                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socket, transformer.mailTransformer(c.getData()));
                 server.changeRequest(write);
             } else {
                 c.setIndex(0);
                 logger.info(this.name + " DONE WRITING");
                 logger.info(c.getData());
+
                 if (c.getStatus() == Connection.Status.AUTH) {
                     if (c.getData().equals(MockPOP3Server.quit())) {
                         closeConnection(key);
@@ -159,6 +166,7 @@ public class Handler implements Runnable {
                 logger.info(this.name + " AUTH");
                 String user = POP3Utils.getUsernameIfAvailable(c.getData());
                 if (user != null) {
+
                     InetSocketAddress popServerAddr = Multplexer.getHost(user);
                     ChangeRequest connect = new ChangeRequest(ChangeRequest.Type.CONNECT, socketChannel, popServerAddr, msg.data());
                     server.changeRequest(connect);
@@ -170,15 +178,14 @@ public class Handler implements Runnable {
                 return;
             case MULTIPLEX:
                 logger.info(this.name + " MULTIPLEX");
-                c.setStatus(Connection.Status.CONENCTED);
+                c.setStatus(Connection.Status.FOWARDING);
                 ChangeRequest writeUser = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socketChannel, c.getUser());
                 server.changeRequest(writeUser);
                 return;
         }
 
 
-
-        if (msg.isDone()) {
+        if (msg.isDone() || c.getStatus() == Connection.Status.FOWARDING) {
             logger.info(this.name + " DONE READING");
             msg = worker.process(msg);
             ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), msg.data());

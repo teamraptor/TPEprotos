@@ -186,11 +186,13 @@ public class Server implements Runnable {
 
     private void handleAccept(ChangeRequest request) {
         logger.info(this.name + " ACCEPT");
+        ReportsService.INSTANCE.reportAccess(1);
         request.getChannel().keyFor(selector).interestOps(SelectionKey.OP_ACCEPT);
     }
 
     private void handleDisconnect(ChangeRequest request) {
         SocketChannel channel = (SocketChannel) request.getChannel();
+        ReportsService.INSTANCE.reportAccess(-1);
         SelectionKey key = channel.keyFor(selector);
         closeConnection(key);
     }

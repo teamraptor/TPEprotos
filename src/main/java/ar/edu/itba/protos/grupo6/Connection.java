@@ -65,6 +65,6 @@ public class Connection {
     }
 
     public enum Status {
-        AUTH, CONENCTED, MULTIPLEX
+        AUTH, CONENCTED, MULTIPLEX, FOWARDING
     }
 }
