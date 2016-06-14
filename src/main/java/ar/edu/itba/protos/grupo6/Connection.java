@@ -93,8 +93,6 @@ public class Connection {
     }
 
     public void consumed(int numWrite) {
-        System.out.println(numWrite);
-        System.out.println(processedData.length());
 
         if (numWrite > processedData.length()) {
             processedData = new StringBuilder();

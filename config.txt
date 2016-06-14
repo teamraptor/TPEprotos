@@ -2,9 +2,10 @@
 tomi 147852
 admin admin
 #MPLEXU
+foo 10.1.34.21 110
 #MPLEX
-false
+true
 #MPLEXD
 pop.gmx.com 110
 #TRANS
-false
+true

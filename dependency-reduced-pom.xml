@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>ar.edu.itba.protos.grupo6</groupId>
   <artifactId>TPE</artifactId>
@@ -57,14 +58,15 @@
     </dependency>
   </dependencies>
   <properties>
-    <java.version>1.8</java.version>
-    <log4j.version>1.2.17</log4j.version>
-    <commons-codec.version>1.4</commons-codec.version>
-    <maven-shade.version>2.4.3</maven-shade.version>
     <maven-jar.version>3.0.1</maven-jar.version>
-    <maven.version>3.1</maven.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven-shade.version>2.4.3</maven-shade.version>
     <junit.version>4.11</junit.version>
+    <java.version>1.8</java.version>
+    <google.guice>3.0-rc2</google.guice>
+    <commons-codec.version>1.4</commons-codec.version>
+    <maven.version>3.1</maven.version>
+    <log4j.version>1.2.17</log4j.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 </project>
 

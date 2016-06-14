@@ -1,26 +1,22 @@
 package transformers;
 
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import javax.imageio.ImageIO;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Base64OutputStream;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 
 public class ImageUtils {
 
 	public static String rotate180(StringBuilder image, String imageSubtype, String imageEncoding) {
+		if (image.toString().isEmpty()) {
+			return image.toString();
+		}
+
+
+
 		InputStream is;
 		if(imageEncoding.equals("base64")) {
 			byte[] aux = decode(image.toString());

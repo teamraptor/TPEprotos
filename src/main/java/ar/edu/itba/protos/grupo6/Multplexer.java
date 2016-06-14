@@ -15,6 +15,8 @@ public class Multplexer {
 
         InetSocketAddress address = ConfigService.INSTANCE.hostForUser(user.trim());
 
+        Logger.getLogger(Multplexer.class.getName()).info(address);
+
         return address;
     }
 }
