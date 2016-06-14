@@ -1,5 +1,9 @@
 package transformers;
 
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -28,15 +32,16 @@ public class ImageUtils {
 		}
 		try {
 			BufferedImage img = ImageIO.read(is);
-			double rotationRequired = Math.toRadians (180);
-			double locationX = img.getWidth() / 2;
-			double locationY = img.getHeight() / 2;
-			AffineTransform tx = AffineTransform.getRotateInstance(rotationRequired, locationX, locationY);
-			AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
-			img = op.filter(img, null);
+			//double rotationRequired = Math.toRadians (180);
+			BufferedImage ans = rotate(img, 180);
+//			double locationX = img.getWidth() / 2;
+//			double locationY = img.getHeight() / 2;
+//			AffineTransform tx = AffineTransform.getRotateInstance(rotationRequired, locationX, locationY);
+//			AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
+//			img = op.filter(img, null);
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			OutputStream b64 = new Base64OutputStream(os);
-			ImageIO.write(img, imageSubtype , b64);
+			ImageIO.write(ans, imageSubtype , b64);
 			return os.toString("UTF-8");
 			
 		} catch (IOException e1) {
@@ -51,5 +56,22 @@ public class ImageUtils {
 		} catch (Exception f) {
 			return null;
 		}
+	}
+	
+	public static BufferedImage rotate(BufferedImage image, double angle) {
+	    int w = image.getWidth(), h = image.getHeight();
+	    GraphicsConfiguration gc = getDefaultConfiguration();
+	    BufferedImage result = gc.createCompatibleImage(w, h);
+	    Graphics2D g = result.createGraphics();
+	    g.rotate(Math.toRadians(angle), w / 2, h / 2);
+	    g.drawRenderedImage(image, null);
+	    g.dispose();
+	    return result;
+	}
+	
+	public static GraphicsConfiguration getDefaultConfiguration() {
+	    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	    GraphicsDevice gd = ge.getDefaultScreenDevice();
+	    return gd.getDefaultConfiguration();
 	}
 }
