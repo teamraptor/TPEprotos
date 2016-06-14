@@ -17,7 +17,6 @@ import org.apache.commons.codec.binary.Base64OutputStream;
 public class ImageUtils {
 
 	public static String rotate180(StringBuilder image, String imageSubtype, String imageEncoding) {
-
 		InputStream is;
 		if(imageEncoding.equals("base64")) {
 			byte[] aux = decode(image.toString());
