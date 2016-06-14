@@ -165,33 +165,4 @@ public class L33t1f13r {
 			return null;
 		}
 	}
-//	
-//
-//	private static String contentTypeRegex = "^(c|C)(o|O)(n|N)(t|T)(e|E)(n|N)(t|T)-(t|T)(y|Y)(p|P)(e|E): (m|M)(u|U)(l|L)(t|T)(i|I)(p|P)(a|A)(r|T)/(m|M)(i|I)(x|X)(e|E)(d|D); (b|B)(o|O)(u|U)(n|N)(d|D)(a|A)(r|R)(y|Y)=";
-//	private static final String subRegex = "^(s|S)(u|U)(b|B)(j|J)(e|E)(c|C)(t|T): ";
-//	private static final String mimeRegex = "^(m|M)(i|I)(m|M)(e|E)-(v|V)(e|E)(r|R)(s|S)(i|I)(o|O)(n|N): 1.0\r\n";
-//	private static final Pattern contentTypePattern = Pattern.compile(contentTypeRegex);
-//	private static final Pattern subPattern = Pattern.compile(subRegex);
-//	private static final Pattern mimePattern = Pattern.compile(mimeRegex);
-//	private static final String CRLF = "\r\n";
-//
-//	
-//	private static int[] getSubjectLimits(String m3ss4g3) {
-//		int[] l1m1ts = { 0, 0 };
-//		String[] l1n3s = m3ss4g3.split(CRLF);
-//		int s1z3 = 0;
-//		boolean fl4g = true;
-//		for (int j = 0; j < l1n3s.length - 1 && fl4g && !l1n3s[j].equals("\n"); j++) {
-//			if (l1n3s[j].length() > 998)
-//				return null;
-//			Matcher m4ux = subPattern.matcher(l1n3s[j]);
-//			if (m4ux.find() && m4ux.start() == 0) {
-//				l1m1ts[0] = s1z3 + m4ux.end();
-//				l1m1ts[1] = s1z3 + l1n3s[j].length();
-//				fl4g = false;
-//			}
-//			s1z3 += l1n3s[j].length() + CRLF.length();
-//		}
-//		return l1m1ts;
-//	}
 }
