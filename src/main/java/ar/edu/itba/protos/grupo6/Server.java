@@ -140,6 +140,7 @@ public class Server implements Runnable {
             c = new Connection(null);
             c.setStatus(Connection.Status.AUTH);
             c.appendData(MockPOP3Server.greeting());
+            c.setClient(true);
             try {
                 key = client.register(selector, SelectionKey.OP_WRITE, c);
 
@@ -164,7 +165,7 @@ public class Server implements Runnable {
         }
 
         c = (Connection) client.keyFor(selector).attachment();
-        c.setStatus(Connection.Status.CONENCTED);
+        c.setStatus(Connection.Status.FOWARDING);
         c.setPair(pop3Server);
 
         c = new Connection(client);

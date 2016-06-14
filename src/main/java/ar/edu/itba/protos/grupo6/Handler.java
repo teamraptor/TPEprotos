@@ -1,7 +1,6 @@
 package ar.edu.itba.protos.grupo6;
 
 import org.apache.log4j.Logger;
-import transformers.MIMETransformer;
 import transformers.POP3Utils;
 
 import java.io.IOException;
@@ -25,7 +24,6 @@ public class Handler implements Runnable {
     private Worker worker;
     private BlockingQueue<SelectionKey> inbox;
     private String name;
-    private MIMETransformer transformer;
 
     public Handler(Server server, BlockingQueue<SelectionKey> inbox, String name) {
 
@@ -35,7 +33,6 @@ public class Handler implements Runnable {
         this.worker = new Worker();
         this.inbox = inbox;
         this.name = name;
-        this.transformer = new MIMETransformer();
         this.access = Logger.getLogger("accessLogger");
         this.logger = Logger.getLogger(Handler.class.getName());
     }
@@ -80,11 +77,64 @@ public class Handler implements Runnable {
     private void handleWrite(SelectionKey key) {
         SocketChannel socket = (SocketChannel) key.channel();
         Connection c = (Connection) key.attachment();
-        byte[] data = c.getData().getBytes();
-        int i = c.getIndex();
-        int length = Math.min(buf.limit(), data.length - i);
+        if (c.getMailComming() && c.getData().startsWith("-ERR")) {
+            c.setMailComing(false);
+        }
 
-        buf.put(c.getData().getBytes(), i, length);
+        String dataS = c.getData();
+
+        System.out.println("______________________________________________________");
+        System.out.println(dataS);
+        System.out.println("______________________________________________________");
+
+        if (c.getMailComming()) {
+            logger.warn("MAIL IS COMMING");
+            StringBuilder ans = new StringBuilder();
+            if (dataS.startsWith("+OK")) {
+                String[] lines = dataS.split("\r\n");
+                int len = lines[0].length() + "\r\n".length();
+                dataS = dataS.substring(len);
+                System.out.println(dataS);
+                logger.warn("STARTS WITH OK");
+                ans.append(lines[0]).append("\r\n");
+            }
+            if (dataS.endsWith("\r\n.\r\n")) {
+                logger.warn("ENDS WITH .");
+                c.setMailComing(false);
+
+                ans.append(c.getParser().mailTransformer(dataS.substring(0, dataS.length() - "\r\n.\r\n".length())));
+                // System.out.println("________--__------------_____----__--_--__--_--");
+                // System.out.println(ans);
+
+
+                ans.append(c.getParser().done()).append("\n\r\n.\r\n");
+                c.resetParser();
+                // System.out.println(ans);
+                //System.out.println("____________((_#$_#$#_________&&&&&&&&$#$#");
+            } else {
+                logger.warn("NOT ENDS");
+                ans.append(c.getParser().mailTransformer(dataS));
+            }
+            if (!ans.toString().isEmpty()) {
+                logger.warn("IS NOT EMPTY");
+                c.appendProcessed(ans.toString());
+            } else {
+                logger.warn("MAIL IS EMPTY");
+
+            }
+
+        } else {
+            logger.warn(c.getData());
+            c.appendProcessed(dataS);
+        }
+
+        logger.warn(c.getProccesedData());
+        byte[] data = c.getProccesedData().getBytes();
+
+        int length = Math.min(buf.limit(), data.length);
+
+
+        buf.put(data, 0, length);
 
         try {
             buf.flip();
@@ -92,13 +142,12 @@ public class Handler implements Runnable {
             ReportsService.INSTANCE.reportTransfer(numWrite);
             logger.info(this.name + " wrote " + numWrite + " bytes");
             buf.clear();
-            c.setIndex(i + numWrite);
-            if (c.getIndex() < data.length) {
+            c.consumed(numWrite);
+            if (!c.getProccesedData().isEmpty()) {
                 logger.info(this.name + " NOT DONE WRITING");
-                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socket, transformer.mailTransformer(c.getData()));
+                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socket);
                 server.changeRequest(write);
             } else {
-                c.setIndex(0);
                 logger.info(this.name + " DONE WRITING");
                 logger.info(c.getData());
 
@@ -158,8 +207,14 @@ public class Handler implements Runnable {
             return;
         }
 
-        POP3 msg = parser.parse(c.getData());
-
+        if (c.isClient()) {
+            System.out.println("****************************");
+            System.out.println(c.getData());
+            if (POP3Utils.isMailComing(c.getData())) {
+                System.out.println("MAIL COMMING");
+                c.setMailComing(true);
+            }
+        }
 
         switch (c.getStatus()) {
             case AUTH:
@@ -168,12 +223,12 @@ public class Handler implements Runnable {
                 if (user != null) {
 
                     InetSocketAddress popServerAddr = Multplexer.getHost(user);
-                    ChangeRequest connect = new ChangeRequest(ChangeRequest.Type.CONNECT, socketChannel, popServerAddr, msg.data());
+                    ChangeRequest connect = new ChangeRequest(ChangeRequest.Type.CONNECT, socketChannel, popServerAddr, c.getData());
                     server.changeRequest(connect);
                     return;
 
                 }
-                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socketChannel, MockPOP3Server.response(msg.data()));
+                ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, socketChannel, MockPOP3Server.response(c.getData()));
                 server.changeRequest(write);
                 return;
             case MULTIPLEX:
@@ -185,15 +240,15 @@ public class Handler implements Runnable {
         }
 
 
-        if (msg.isDone() || c.getStatus() == Connection.Status.FOWARDING) {
+        if (c.getStatus() == Connection.Status.FOWARDING) {
             logger.info(this.name + " DONE READING");
-            msg = worker.process(msg);
-            ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), msg.data());
+            ChangeRequest write = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_WRITE, c.getPair(), c.getData());
             server.changeRequest(write);
+            c.setData("");
             return;
         }
         logger.info(this.name + " NOT DONE READING");
-        ChangeRequest request = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socketChannel, msg.data());
+        ChangeRequest request = new ChangeRequest(ChangeRequest.Type.CHANGEOP, SelectionKey.OP_READ, socketChannel, c.getData());
         server.changeRequest(request);
     }
 
