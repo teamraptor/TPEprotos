@@ -49,38 +49,6 @@ public class MIMETransformer {
 		}
 	}
 
-	public static void main(String[] args) {
-		MIMETransformer parser = new MIMETransformer();
-
-		String asd = "*OKasd\r\n" +
-				"MIME-Version: 1.0\r\n" +
-				"Received: by 10.79.70.1 with HTTP; Tue, 14 Jun 2016 11:07:58 -0700 (PDT)\r\n" +
-				"Date: Tue, 14 Jun 2016 15:07:58 -0300\r\n" +
-				"Delivered-To: lmarzora@itba.edu.ar\r\n" +
-				"Message-ID: <CA+TfVzcPLzuPRRS8R4B4ejuamYU-stK6DTOz+wT04M76fvox9A@mail.gmail.com>\r\n" +
-				"Subject: hola\r\n" +
-				"From: Luis Ignacio Marzoratti <lmarzora@itba.edu.ar>\r\n" +
-				"To: protos1234@gmx.com\r\n" +
-				"Content-Type: multipart/alternative; boundary=94eb2c066dee84ab65053540e278\r\n" +
-				"\r\n" +
-				"--94eb2c066dee84ab65053540e278\r\n" +
-				"Content-Type: text/plain; charset=UTF-8\r\n" +
-				"\r\n" +
-				"hola\r\n" +
-				"\r\n" +
-				"--94eb2c066dee84ab65053540e278\r\n" +
-				"Content-Type: text/html; charset=UTF-8\r\n" +
-				"\r\n" +
-				"<div dir=\"ltr\">hola<br></div>\r\n" +
-				"\r\n" +
-				"--94eb2c066dee84ab65053540e278--\r\n";
-
-		MIMETransformer q = new MIMETransformer();
-
-
-		return;
-
-	}
 
 	public String mailTransformer(String chunk) {
 		if (chunk.isEmpty()) {
@@ -215,7 +183,8 @@ public class MIMETransformer {
 							}
 						} else{
 							if(bound.isEmpty()) {
-								boundarys.add(unfolded.substring(2)); //removes --
+								if(boundarys.isEmpty() || !unfolded.substring(2).equals(boundarys.peek()))		//si no estaba en la cima del stack apilo, sino sigo en la misma
+									boundarys.add(unfolded.substring(2)); //removes --
 								state = State.BODYHEADER;
 							} else {
 								unfolded.append(lines[i]);
@@ -360,8 +329,8 @@ public class MIMETransformer {
 			String bound = unfolded.substring(lastBoundary.end());
 			if (bound.equals(("--"))) {
 				ans.append(ImageUtils.rotate180(imageBuffer, imageSubtype, imageEncoding)).append(CRLF);
-				ans.append(unfolded).append(CRLF);
 			}
+			ans.append(unfolded).append(CRLF);
 		} else {
 			ans.append(imageBuffer).append(CRLF).append(unfolded);
 		}
@@ -379,5 +348,4 @@ public class MIMETransformer {
 	public enum State {
 		START, UNFOLDER, BODYHEADER, BODYBODY, COMMONMAIL, IMAGE, HERROR, BERROR,
 	}
-
 }
